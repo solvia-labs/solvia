@@ -4,7 +4,7 @@ use crate::{
     nonce,
     pubkey::Pubkey,
     system_program,
-    sysvar::{recent_blockhashes, rent},
+    sysvar::{recent_blockhashes, rent, fnode_data},
 };
 use num_derive::{FromPrimitive, ToPrimitive};
 use thiserror::Error;
@@ -300,6 +300,19 @@ pub enum SystemInstruction {
         /// Owner to use to derive the funding account address
         from_owner: Pubkey,
     },
+
+    /// Create a new Fundamental Node
+    ///
+    /// # Account references
+    ///   0. [WRITE, SIGNER] Funding account
+    ///   1. [WRITE, SIGNER] New account
+    CreateFNode {
+        /// Address of program that will own the new account
+        reward_address: Pubkey,
+
+        /// Number of bytes of memory to allocate
+        node_type: i8,
+    },
 }
 
 pub fn create_account(
@@ -380,6 +393,23 @@ pub fn assign_with_seed(
             seed: seed.to_string(),
             owner: *owner,
         },
+        account_metas,
+    )
+}
+
+
+pub fn create_fnode(from_pubkey: &Pubkey, reward_address: &Pubkey, node_type: i8) -> Instruction {
+    let account_metas = vec![
+        AccountMeta::new(*from_pubkey, true),
+        AccountMeta::new(*&fnode_data::id(), false),
+    ];
+
+    //todo :error if invalid node_type
+    // InstructionError::InvalidAccountData;
+
+    Instruction::new_with_bincode(
+        system_program::id(),
+        &SystemInstruction::CreateFNode { reward_address : *reward_address, node_type },
         account_metas,
     )
 }

@@ -5,15 +5,18 @@ use solana_sdk::{
     feature_set, ic_msg,
     instruction::InstructionError,
     keyed_account::{from_keyed_account, get_signers, keyed_account_at_index, KeyedAccount},
+    native_token::sol_to_lamports,
     nonce,
     nonce_keyed_account::NonceKeyedAccount,
     process_instruction::InvokeContext,
+    process_instruction::get_sysvar,
     program_utils::limited_deserialize,
     pubkey::Pubkey,
     system_instruction::{SystemError, SystemInstruction, MAX_PERMITTED_DATA_LENGTH},
     system_program,
     sysvar::{self, recent_blockhashes::RecentBlockhashes, rent::Rent},
 };
+use solana_sdk::fnode_data::*;
 use std::collections::HashSet;
 
 // represents an address that may or may not have been generated
@@ -198,6 +201,82 @@ fn transfer_verified(
     to.try_account_ref_mut()?.checked_add_lamports(lamports)?;
     Ok(())
 }
+
+fn createfnode(
+    from: &KeyedAccount,
+    fnode_account: &KeyedAccount,
+    reward_address: &Pubkey,
+    node_type: i8,
+    invoke_context: &dyn InvokeContext,
+) -> Result<(), InstructionError> {
+    // todo : lamports according to node_type
+    let lamports:u64;
+    if node_type == 0
+    {lamports = sol_to_lamports(COLLATERAL_PHOENIX);}
+    else if node_type == 1
+    {lamports = sol_to_lamports(COLLATERAL_NOUA);}
+    else if node_type == 2
+    {lamports = sol_to_lamports(COLLATERAL_FULGUR);}
+    else
+    {
+        return Err(InstructionError::InvalidInstructionData);
+    }
+
+    if !invoke_context.is_feature_active(&feature_set::system_transfer_zero_check::id())
+        && lamports == 0
+    {
+        return Ok(());
+    }
+
+    // checks to make sure data is written to SysvarFnodeData
+    if fnode_account.unsigned_key() != &sysvar::fnode_data::id()
+    {
+        ic_msg!(
+            invoke_context,
+            "CreateFNode: account {} is not SysvarFNodeData",
+            fnode_account.unsigned_key()
+        );
+        return Err(InstructionError::InvalidInstructionData);
+    }
+    if from.signer_key().is_none() {
+        ic_msg!(
+            invoke_context,
+            "Transfer: `from` account {} must sign",
+            from.unsigned_key()
+        );
+        return Err(InstructionError::MissingRequiredSignature);
+    }
+    // todo: check return value of burn_verified
+    // todo: populate sysvarNodeData after burn_verified with node info
+    // burn_verified(from, lamports, invoke_context);
+    if Ok(()) == transfer_verified(from, fnode_account, lamports, invoke_context)
+    {
+        let new_fnode: NodeData = (reward_address.clone(), node_type, 0 as u64, false);
+
+// Read Sysvar data
+        let mut fnode_data: FNodeData = Some(get_sysvar::<FNodeData>(invoke_context, &sysvar::fnode_data::id())?).unwrap();
+        fnode_data.add(new_fnode); // add new node to previous data
+        let fnode_data_vec = fnode_data.clone(); // clone
+// serialize data
+        let mut data: Vec<u8> = Vec::with_capacity(fnode_data_vec.len());
+        bincode::serialize_into(&mut data, &fnode_data).map_err(|err| {
+            ic_msg!(invoke_context, "Unable to serialize sysvar: {:?}", err);
+            InstructionError::GenericError
+        })?;
+// mut account and store state
+        let mut account = fnode_account.try_account_ref_mut()?;
+        account.set_data(data);
+        Ok(())
+    }
+    else {
+        ic_msg!(
+            invoke_context,
+            "CreateFNode: burn failed"
+        );
+        return Err(InstructionError::InvalidInstructionData);
+    }
+}
+
 
 fn transfer(
     from: &KeyedAccount,
@@ -428,6 +507,14 @@ pub fn process_instruction(
                 invoke_context,
             )?;
             assign(&mut account, &address, &owner, &signers, invoke_context)
+        }
+        SystemInstruction::CreateFNode {
+            reward_address,
+            node_type,
+        } => {
+            let from = keyed_account_at_index(keyed_accounts, 0)?;
+            let fnode_account = keyed_account_at_index(keyed_accounts, 1)?;
+            createfnode(from, fnode_account, &reward_address, node_type, invoke_context)
         }
     }
 }

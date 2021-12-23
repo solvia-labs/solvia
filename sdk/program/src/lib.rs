@@ -18,6 +18,7 @@ pub mod entrypoint_deprecated;
 pub mod epoch_schedule;
 pub mod feature;
 pub mod fee_calculator;
+pub mod fnode_data;
 pub mod hash;
 pub mod incinerator;
 pub mod instruction;

@@ -52,6 +52,17 @@ pub fn parse_system(
                 }),
             })
         }
+        SystemInstruction::CreateFNode { reward_address, node_type } => {
+            check_num_system_accounts(&instruction.accounts, 2)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "createfnode".to_string(),
+                info: json!({
+                    "source": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "reward_address": reward_address.to_string(),
+                    "node_type": node_type,
+                }),
+            })
+        }
         SystemInstruction::Transfer { lamports } => {
             check_num_system_accounts(&instruction.accounts, 2)?;
             Ok(ParsedInstructionEnum {

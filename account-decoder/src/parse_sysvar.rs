@@ -7,6 +7,7 @@ use bv::BitVec;
 use solana_sdk::{
     clock::{Clock, Epoch, Slot, UnixTimestamp},
     epoch_schedule::EpochSchedule,
+    fnode_data::{RewardAddress, NodeType,TotalPaid, State, FNodeData},
     pubkey::Pubkey,
     rent::Rent,
     slot_hashes::SlotHashes,
@@ -27,6 +28,19 @@ pub fn parse_sysvar(data: &[u8], pubkey: &Pubkey) -> Result<SysvarAccountType, P
             deserialize::<Fees>(data)
                 .ok()
                 .map(|fees| SysvarAccountType::Fees(fees.into()))
+        } else if pubkey == &sysvar::fnode_data::id() {
+            deserialize::<FNodeData>(data).ok().map(|fnode_data| {
+                let fnode_data = fnode_data
+                    .iter()
+                    .map(|node_data| UiFNodeDataEntry {
+                        reward_address: node_data.0,
+                        node_type: node_data.1,
+                        total_paid: node_data.2,
+                        state: node_data.3
+                    })
+                    .collect();
+                SysvarAccountType::FNodeData(fnode_data)
+            })
         } else if pubkey == &sysvar::recent_blockhashes::id() {
             deserialize::<RecentBlockhashes>(data)
                 .ok()
@@ -92,6 +106,7 @@ pub enum SysvarAccountType {
     Clock(UiClock),
     EpochSchedule(EpochSchedule),
     Fees(UiFees),
+    FNodeData(Vec<UiFNodeDataEntry>),
     RecentBlockhashes(Vec<UiRecentBlockhashesEntry>),
     Rent(UiRent),
     Rewards(UiRewards),
@@ -133,6 +148,19 @@ impl From<Fees> for UiFees {
             fee_calculator: fees.fee_calculator.into(),
         }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct UiFNodeDataEntry {
+    /// the current network/bank Slot
+    pub reward_address: RewardAddress,
+    /// the type of node
+    pub node_type: NodeType,
+    /// total amount paid to node
+    pub total_paid: TotalPaid,
+    /// state of the node : activating - 0, active - 1
+    pub state: State,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Default)]

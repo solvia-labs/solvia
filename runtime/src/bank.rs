@@ -89,6 +89,7 @@ use solana_sdk::{
     feature,
     feature_set::{self, tx_wide_compute_cap, FeatureSet},
     fee_calculator::{FeeCalculator, FeeRateGovernor},
+    fnode_data::*,
     genesis_config::{ClusterType, GenesisConfig},
     hard_forks::HardForks,
     hash::{extend_and_hash, hashv, Hash},
@@ -110,6 +111,7 @@ use solana_sdk::{
     signature::{Keypair, Signature},
     slot_hashes::SlotHashes,
     slot_history::SlotHistory,
+    system_program,
     system_transaction,
     sysvar::{self},
     timing::years_as_slots,
@@ -1198,6 +1200,7 @@ impl Bank {
             bank.update_stake_history(None);
         }
         bank.update_clock(None);
+        bank.update_fnode_data_frji();
         bank.update_rent();
         bank.update_epoch_schedule();
         bank.update_recent_blockhashes();
@@ -1398,6 +1401,7 @@ impl Bank {
             new.update_slot_hashes();
             new.update_stake_history(Some(parent_epoch));
             new.update_clock(Some(parent_epoch));
+            new.process_fnode_rewards(Some(parent_epoch));
             new.update_fees();
 
             return new;
@@ -1413,6 +1417,7 @@ impl Bank {
         new.update_rewards(parent_epoch, reward_calc_tracer);
         new.update_stake_history(Some(parent_epoch));
         new.update_clock(Some(parent_epoch));
+        new.process_fnode_rewards(Some(parent_epoch));
         new.update_fees();
         if !new.fix_recent_blockhashes_sysvar_delay() {
             new.update_recent_blockhashes();
@@ -1707,6 +1712,9 @@ impl Bank {
             // although there is no such sysvars currently.
             self.adjust_sysvar_balance_for_rent(&mut new_account);
         }
+        if pubkey == &sysvar::fnode_data::id() {
+            new_account.set_lamports(self.get_minimum_balance_for_rent_exemption(new_account.data().len()));
+        }
 
         self.store_account_and_update_capitalization(pubkey, &new_account);
     }
@@ -1831,6 +1839,169 @@ impl Bank {
             )
         });
     }
+
+    fn update_fnode_data(&self, new_node_data : FNodeData) {
+        self.update_sysvar_account(&sysvar::fnode_data::id(), |account| {
+//            let mut fnode_data = account
+//                .as_ref()
+//                .map(|account| from_account::<FNodeData, _>(account).unwrap())
+//                .unwrap_or_default();
+            // todo : implement add, modify, delete carefully
+            // fnode_data.add(self);
+            create_account(
+                &new_node_data,
+                self.inherit_specially_retained_account_fields(account),
+            )
+        });
+    }
+
+    fn update_fnode_data_frji(&self) {
+        self.update_sysvar_account(&sysvar::fnode_data::id(), |account| {
+            let mut fnode_data = account
+                .as_ref()
+                .map(|account| from_account::<FNodeData, _>(account).unwrap())
+                .unwrap_or_default();
+            //todo : implement add, modify, delete carefully
+            fnode_data.new_frji();
+            create_account(
+                &fnode_data,
+                self.inherit_specially_retained_account_fields(account),
+            )
+        });
+    }
+
+    fn distribute_fn_reward(&self, reward_address : Pubkey, lamports : u64) {
+        if lamports > 0 {
+            if let Some(mut account) = self.get_account_with_fixed_root(&reward_address) {
+                // account found, add balance and store
+                let old_lamports = account.lamports();
+                let new_lamports = old_lamports + lamports;
+                account.set_lamports(new_lamports);
+                self.store_account_and_update_capitalization(&reward_address, &account);
+            } else {
+                //account not found --  create one with owner as SYS_PROG and store
+                let account = Account::new(lamports, 0, &system_program::id());
+                let new_account = AccountSharedData::from(account);
+                self.store_account_and_update_capitalization(&reward_address, &new_account);
+            }
+        }
+    }
+
+    fn process_fnode_rewards(&self, epoch: Option<Epoch>) {
+        // rewards are distributed per epoch
+        // ALLOCATED REWARDS for each node category are for per epoch i.e, per 432k blocks
+        // FNodeData (RewardAddress, NodeType, TotalPaid, State) types- (PubKey, i8, u64, bool)
+        // Phoenix, Noua, Fulgur with collaterals (20k,5k,2k) & ROI (30k, 7k, 2.6k)
+        if epoch == Some(self.epoch()) {
+            return;
+        }
+        // let mut fnode_data : FNodeData = from_account(&self.get_account(&sysvar::fnode_data::id()).unwrap()).unwrap();
+        let mut fnode_data_orig : FNodeData = from_account::<FNodeData, _>(&self.get_account(&sysvar::fnode_data::id()).unwrap()).unwrap();
+        let mut fnode_data = fnode_data_orig.clone();
+        //todo : count no of nodes of each category
+        // let count_phoenix,count_noua,count_fulgur = node_count_type_from_vec();
+        // let per_node_reward_phoenix,per_node_reward_noua,per_node_reward_fulgur =
+        //      REWARD_PHOENIX/count_phoenix,REWARD_NOUA/count_noua,REWARD_FULGUR/count_fulgur
+
+        // Count no of nodes for each category -- PHOENIX, NOUA, FULGUR
+        let (mut count_phoenix, mut count_noua, mut count_fulgur) : (i32, i32, i32) = (0,0,0);
+        let fnode_data_iter = fnode_data.iter();
+        for (index,fnode) in fnode_data_iter.enumerate()
+        {  if fnode_data[index].3 == true {
+            if fnode.1 == 0 {
+                count_phoenix += 1;
+            } else if fnode.1 == 1 {
+                count_noua += 1;
+            } else {
+                count_fulgur += 1;
+            }
+        }
+        }
+
+        // todo : note:: check division by 0
+        // Calculate Reward per node for each category - Phoenix, Noua, Fulgur
+        let (mut per_node_reward_phoenix, mut per_node_reward_noua, mut per_node_reward_fulgur) : (u64,u64,u64) = (0,0,0) ;
+        if count_phoenix != 0 {
+            per_node_reward_phoenix = sol_to_lamports(PER_EPOCH_REWARD_PHOENIX) / count_phoenix as u64; }
+        if count_noua !=0 {
+            per_node_reward_noua = sol_to_lamports(PER_EPOCH_REWARD_NOUA) / count_noua as u64; }
+        if count_fulgur !=0 {
+            per_node_reward_fulgur = sol_to_lamports(PER_EPOCH_REWARD_FULGUR) / count_fulgur as u64; }
+
+        let mut index = 1;
+        let mut amount_to_pay : u64;
+        while index < fnode_data.len()
+        {
+            if fnode_data[index].3 == true
+            { // state = active -- distribute rewards
+                if fnode_data[index].1 == 0{
+                    // update fnode.total_paid_out
+                    // if total_paid_out > MAX_PAY_PHOENIX => reward=M-total_paid_out, TP = M&
+                    // delete_node
+                    // distribute_fnode_reward(fnode.reward_address, reward_lamports);
+                    if fnode_data[index].2 + per_node_reward_phoenix >= sol_to_lamports(MAX_ROI_PHOENIX)
+                    {// MAX ROI reached, pay remaining if any and delete
+                        amount_to_pay = sol_to_lamports(MAX_ROI_PHOENIX) - fnode_data[index].2;
+                        fnode_data[index].2 = sol_to_lamports(MAX_ROI_PHOENIX);
+                        self.distribute_fn_reward(fnode_data[index].0, amount_to_pay);
+                        fnode_data.remove(index);
+                        index -= 1; // note : if not reduced it will skip next node iteration
+                    // above may lead to double reward of previous node
+                    // or mark it to be removed dont remove in this loop
+                    //break;
+                    datapoint_info!("removed_node_phoenix");
+                    }
+                    else {
+                        amount_to_pay = per_node_reward_phoenix;
+                        fnode_data[index].2 += amount_to_pay;
+                        self.distribute_fn_reward(fnode_data[index].0, amount_to_pay);
+                    }
+                }
+                else if fnode_data[index].1 == 1{
+                    if fnode_data[index].2 + per_node_reward_noua >= sol_to_lamports(MAX_ROI_NOUA)
+                    {   amount_to_pay = sol_to_lamports(MAX_ROI_NOUA) - fnode_data[index].2;
+                        fnode_data[index].2 = sol_to_lamports(MAX_ROI_NOUA);
+                        self.distribute_fn_reward(fnode_data[index].0, amount_to_pay);
+                        fnode_data.remove(index);
+                        index -= 1;
+                        datapoint_info!("removed_node_noua");
+                    }
+                    else {
+                        amount_to_pay = per_node_reward_noua;
+                        fnode_data[index].2 += amount_to_pay;
+                        self.distribute_fn_reward(fnode_data[index].0, amount_to_pay);
+                    }
+                }
+                else if fnode_data[index].1 == 2{
+                    if fnode_data[index].2 + per_node_reward_fulgur >= sol_to_lamports(MAX_ROI_FULGUR)
+                    {   amount_to_pay = sol_to_lamports(MAX_ROI_FULGUR) - fnode_data[index].2;
+                        fnode_data[index].2 = sol_to_lamports(MAX_ROI_FULGUR);
+                        self.distribute_fn_reward(fnode_data[index].0, amount_to_pay);
+                        fnode_data.remove(index);
+                        index -= 1;
+                        //break;
+                        datapoint_info!("removed_node_fulgur");
+                    }
+                    else {
+                        amount_to_pay = per_node_reward_fulgur;
+                        fnode_data[index].2 += amount_to_pay;
+                        self.distribute_fn_reward(fnode_data[index].0, amount_to_pay);
+                    }
+                }
+
+            }
+            else {
+                // state = activating -- make it active and no rewards till next epoch
+                fnode_data[index].3 = true;
+            }
+            index += 1;
+        }
+        fnode_data_orig.replace_with(fnode_data);
+        //Store modified fnode_data
+        self.update_fnode_data(fnode_data_orig);
+    }
+
+
 
     fn update_slot_hashes(&self) {
         self.update_sysvar_account(&sysvar::slot_hashes::id(), |account| {
@@ -5756,6 +5927,7 @@ impl Bank {
             sysvar::clock::id(),
             sysvar::epoch_schedule::id(),
             sysvar::fees::id(),
+            sysvar::fnode_data::id(),
             sysvar::recent_blockhashes::id(),
             sysvar::rent::id(),
             sysvar::rewards::id(),
