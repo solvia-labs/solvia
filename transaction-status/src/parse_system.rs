@@ -63,6 +63,29 @@ pub fn parse_system(
                 }),
             })
         }
+        SystemInstruction::AddGrant { id, receiving_address, amount } => {
+            check_num_system_accounts(&instruction.accounts, 2)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "addgrant".to_string(),
+                info: json!({
+                    "source": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "grant_id": id,
+                    "receiving_address": receiving_address.to_string(),
+                    "amount": amount,
+                }),
+            })
+        }
+        SystemInstruction::VoteOnGrant { grant_hash, vote } => {
+            check_num_system_accounts(&instruction.accounts, 2)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "VoteOnGrant".to_string(),
+                info: json!({
+                    "source": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "grant_hash": grant_hash.to_string(),
+                    "vote": vote,
+                }),
+            })
+        }
         SystemInstruction::Transfer { lamports } => {
             check_num_system_accounts(&instruction.accounts, 2)?;
             Ok(ParsedInstructionEnum {

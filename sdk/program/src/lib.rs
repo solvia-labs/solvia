@@ -19,6 +19,7 @@ pub mod epoch_schedule;
 pub mod feature;
 pub mod fee_calculator;
 pub mod fnode_data;
+pub mod grant_data;
 pub mod hash;
 pub mod incinerator;
 pub mod instruction;

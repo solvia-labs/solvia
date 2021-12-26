@@ -90,6 +90,7 @@ use solana_sdk::{
     feature_set::{self, tx_wide_compute_cap, FeatureSet},
     fee_calculator::{FeeCalculator, FeeRateGovernor},
     fnode_data::*,
+    grant_data::*,
     genesis_config::{ClusterType, GenesisConfig},
     hard_forks::HardForks,
     hash::{extend_and_hash, hashv, Hash},
@@ -1201,6 +1202,7 @@ impl Bank {
         }
         bank.update_clock(None);
         bank.update_fnode_data_frji();
+        bank.add_grant_data_frji();
         bank.update_rent();
         bank.update_epoch_schedule();
         bank.update_recent_blockhashes();
@@ -1402,6 +1404,7 @@ impl Bank {
             new.update_stake_history(Some(parent_epoch));
             new.update_clock(Some(parent_epoch));
             new.process_fnode_rewards(Some(parent_epoch));
+            new.process_grants(parent_epoch);
             new.update_fees();
 
             return new;
@@ -1418,6 +1421,7 @@ impl Bank {
         new.update_stake_history(Some(parent_epoch));
         new.update_clock(Some(parent_epoch));
         new.process_fnode_rewards(Some(parent_epoch));
+        new.process_grants(parent_epoch);
         new.update_fees();
         if !new.fix_recent_blockhashes_sysvar_delay() {
             new.update_recent_blockhashes();
@@ -1870,6 +1874,21 @@ impl Bank {
         });
     }
 
+    fn add_grant_data_frji(&self) {
+        self.update_sysvar_account(&sysvar::grant_data::id(), |account| {
+            let mut grant_data = account
+                .as_ref()
+                .map(|account| from_account::<VecGrantData, _>(account).unwrap())
+                .unwrap_or_default();
+            //todo : implement add, modify, delete carefully
+            grant_data.new_frji();
+            create_account(
+                &grant_data,
+                self.inherit_specially_retained_account_fields(account),
+            )
+        });
+    }
+
     fn distribute_fn_reward(&self, reward_address : Pubkey, lamports : u64) {
         if lamports > 0 {
             if let Some(mut account) = self.get_account_with_fixed_root(&reward_address) {
@@ -1999,6 +2018,76 @@ impl Bank {
         fnode_data_orig.replace_with(fnode_data);
         //Store modified fnode_data
         self.update_fnode_data(fnode_data_orig);
+    }
+
+    fn pay_grant(&self, address : Pubkey, lamports : u64) {
+        if lamports > 0 {
+            if let Some(mut account) = self.get_account_with_fixed_root(&address) {
+                // account found, add balance and store
+                let old_lamports = account.lamports();
+                let new_lamports = old_lamports + lamports;
+                account.set_lamports(new_lamports);
+                self.store_account_and_update_capitalization(&address, &account);
+            } else {
+                //account not found --  create one with owner as SYS_PROG and store
+                let account = Account::new(lamports, 0, &system_program::id());
+                let new_account = AccountSharedData::from(account);
+                self.store_account_and_update_capitalization(&address, &new_account);
+            }
+        }
+    }
+
+    fn process_grants(&self, epoch: Epoch) {
+        // rewards are distributed per epoch
+        // ALLOCATED REWARDS for each node category are for per epoch i.e, per 432k blocks
+        // FNodeData (RewardAddress, NodeType, TotalPaid, State) types- (PubKey, i8, u64, bool)
+        // Phoenix, Noua, Fulgur with collaterals (20k,5k,2k) & ROI (30k, 7k, 2.6k)
+        if !(epoch % 15 == 0 && epoch != 0) {
+            return;
+        }
+        // let mut fnode_data : FNodeData = from_account(&self.get_account(&sysvar::fnode_data::id()).unwrap()).unwrap();
+        let fnode_data_orig : FNodeData = from_account::<FNodeData, _>(&self.get_account(&sysvar::fnode_data::id()).unwrap()).unwrap();
+        let fnode_data = fnode_data_orig.clone();
+
+        // Count no of nodes for each category -- PHOENIX, NOUA, FULGUR
+        let (mut count_phoenix, mut count_noua, mut count_fulgur) : (i32, i32, i32) = (0,0,0);
+        let fnode_data_iter = fnode_data.iter();
+        for (index,fnode) in fnode_data_iter.enumerate()
+        {  if fnode_data[index].3 == true {
+            if fnode.1 == 0 {
+                count_phoenix += 1;
+            } else if fnode.1 == 1 {
+                count_noua += 1;
+            } else {
+                count_fulgur += 1;
+            }
+          }
+        }
+
+        let total_weight = count_phoenix * VOTES_PHOENIX + count_noua * VOTES_NOUA + count_fulgur * VOTES_FULGUR;
+        //read grant data,
+        let mut grant_data_orig : VecGrantData = from_account::<VecGrantData, _>(&self.get_account(&sysvar::grant_data::id()).unwrap()).unwrap();
+        let mut grant_data = grant_data_orig.clone(); //clone foe vector
+
+        let mut total_grants_paid : u64 = 0;
+        for grant in grant_data.iter(){
+            let grant_vote_weight = grant.4;
+
+            if grant_vote_weight as f32 > total_weight as f32 * 0.3 // 30% criteria
+            {
+                //pay_grant if valid amount
+                if total_grants_paid + grant.3 <= sol_to_lamports(MAX_GRANT_PER_MONTH) {
+                    if grant.3 <= sol_to_lamports(MAX_AMOUNT_PER_GRANT)
+                    {
+                        self.pay_grant(grant.2, grant.3);
+                        total_grants_paid += grant.3;
+                    }
+                }
+            }
+        }
+
+        //processed all grants, remove all and store dummy grant
+        self.add_grant_data_frji();
     }
 
 

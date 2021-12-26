@@ -6,6 +6,7 @@ pub mod clock;
 pub mod epoch_schedule;
 pub mod fees;
 pub mod fnode_data;
+pub mod grant_data;
 pub mod instructions;
 pub mod recent_blockhashes;
 pub mod rent;

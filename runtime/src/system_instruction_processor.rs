@@ -16,8 +16,10 @@ use solana_sdk::{
     system_program,
     sysvar::{self, recent_blockhashes::RecentBlockhashes, rent::Rent},
 };
-use solana_sdk::fnode_data::*;
+use solana_sdk::{fnode_data::*,grant_data::*};
 use std::collections::HashSet;
+use solana_sdk::hash::{Hash, hash};
+use bincode::serialize;
 
 // represents an address that may or may not have been generated
 //  from a seed
@@ -277,6 +279,180 @@ fn createfnode(
     }
 }
 
+fn add_grant(
+    from: &KeyedAccount,
+    grant_account: &KeyedAccount,
+    id: i16,
+    receiving_address: &Pubkey,
+    amount: u64,
+    invoke_context: &dyn InvokeContext,
+) -> Result<(), InstructionError> {
+    // checks to make sure data is written to GrantData
+    if grant_account.unsigned_key() != &sysvar::grant_data::id()
+    {
+        ic_msg!(
+            invoke_context,
+            "AddGrant: account {} is not GrantData",
+            grant_account.unsigned_key()
+        );
+        return Err(InstructionError::InvalidInstructionData);
+    }
+    if from.signer_key().is_none() {
+        ic_msg!(
+            invoke_context,
+            "AddGrant: `from` account {} must sign",
+            from.unsigned_key()
+        );
+        return Err(InstructionError::MissingRequiredSignature);
+    }
+    //todo : add auth_pubkey
+    if from.unsigned_key() != from.unsigned_key() //auth_pubkey_to_add_grant
+    {
+        ic_msg!(
+            invoke_context,
+            "AddGrant: {} not authorised_pubkey ",
+            from.unsigned_key()
+        );
+        return Err(InstructionError::MissingRequiredSignature);
+    }
+
+    //let vec_votes :  Vec<Pubkey> = Vec::new();   //depr by new vec_votes....
+    // todo calc hash of <ID,recv_addr,amount>... remove this frji data
+    let id_bytes = serialize(&id).unwrap();
+    let recv_address_bytes = serialize(&receiving_address).unwrap();
+    let amount_bytes = serialize(&amount).unwrap();
+//    let mut vec_bytes: Vec<u8> = Vec::with_capacity(id_bytes.len()+recv_address_bytes.len()+amount_bytes.len());
+    let mut vec_bytes: Vec<u8> = Vec::new();
+    vec_bytes.extend(id_bytes);
+    vec_bytes.extend(recv_address_bytes);
+    vec_bytes.extend(amount_bytes);
+    let grant_hash = hash(&vec_bytes);
+
+    let vec_votes = vec![Pubkey::default()];
+
+    let new_grant: GrantData = (grant_hash, id, *receiving_address, amount, 0 as i32, vec_votes);
+
+// Read Sysvar data
+    let mut grant_data: VecGrantData = Some(get_sysvar::<VecGrantData>(invoke_context, &sysvar::grant_data::id())?).unwrap();
+    let mut grant_data_vec = grant_data.clone(); // clone
+    match grant_data_vec.binary_search_by(|(hash, _, _, _, _, _)| grant_hash.cmp(hash)) {
+        Ok(index) => return Err(InstructionError::MissingRequiredSignature),
+        Err(index) => grant_data.add(new_grant),
+    }
+    grant_data_vec = grant_data.clone();
+// serialize data
+    let mut data: Vec<u8> = Vec::with_capacity(grant_data_vec.len());
+    bincode::serialize_into(&mut data, &grant_data).map_err(|err| {
+        ic_msg!(invoke_context, "Unable to serialize sysvar: {:?}", err);
+        InstructionError::GenericError
+    })?;
+// mut account and store state
+    let mut account = grant_account.try_account_ref_mut()?;
+    account.set_data(data);
+
+    Ok(())
+}
+
+// Vote comes from reward_address of FNode, only 0,1 Nodetype can vote
+// node_type:0 has 5 votes while node_type:1 has 1 vote
+// Make sure grant_hash exists in GrantNode && from.unsignedkey is present in FNodeData
+// todo : make sure a node cannot vote twice
+// count number of nodes with same reward_address_pubkey as from.pubkey
+// count number of votes of this node from vec_votes from grant_data
+// node_count >= vote_count from that rewrd_addr_pubkey
+// add pubkey to votes and store back to grant_data
+
+fn vote_on_grant(
+    from: &KeyedAccount,
+    grant_account: &KeyedAccount,
+    grant_hash: Hash,
+    vote: bool,
+    invoke_context: &dyn InvokeContext,
+) -> Result<(), InstructionError> {
+    // checks to make sure data is written to GrantData
+    if grant_account.unsigned_key() != &sysvar::grant_data::id()
+    {
+        ic_msg!(
+            invoke_context,
+            "Vote: account {} is not GrantData",
+            grant_account.unsigned_key()
+        );
+        return Err(InstructionError::InvalidInstructionData);
+    }
+    if from.signer_key().is_none() {
+        ic_msg!(
+            invoke_context,
+            "Vote: `from` account {} must sign",
+            from.unsigned_key()
+        );
+        return Err(InstructionError::MissingRequiredSignature);
+    }
+
+
+    //Find which node is trying to vote return Err if Node is not present
+    let mut fnode_data: FNodeData = Some(get_sysvar::<FNodeData>(invoke_context, &sysvar::fnode_data::id())?).unwrap();
+    let fnode_data_vec = fnode_data.clone(); // clone to get vector
+    let mut node_count = 0;
+    let mut vote_count_of_node = 0;
+    let mut vec_votes :  Vec<Pubkey> = Vec::new();
+    let mut vec_node_types_same_pubkey : Vec<i8> = Vec::new();
+
+    for fnode in fnode_data_vec.iter()
+    {
+        if fnode.3 == true { //count only active nodes
+            if fnode.0 == *from.unsigned_key() {
+                node_count += 1;
+                vec_node_types_same_pubkey.push(fnode.1);
+            }
+        }
+    }
+    // todo: remove zero pubkey from vec_votes when first vote comes
+    vec_node_types_same_pubkey.sort();
+    if node_count==0 { return Err(InstructionError::InvalidInstructionData); }
+    let mut grant_data: VecGrantData = Some(get_sysvar::<VecGrantData>(invoke_context, &sysvar::grant_data::id())?).unwrap();
+    let mut grant_data_vec = grant_data.clone(); // clone to get vector
+    let mut grant_index = 0;
+    match grant_data_vec.binary_search_by(|(hash, _, _, _, _, _)| grant_hash.cmp(hash)) {
+        Ok(index) => {vec_votes = grant_data_vec[index].5.clone(); grant_index = index},
+        Err(index) => return Err(InstructionError::InvalidInstructionData),
+    }
+
+    for vote in vec_votes.iter(){
+        if vote == from.unsigned_key() {vote_count_of_node += 1}
+    }
+    if node_count > vote_count_of_node {
+        // insert frompubkey to Votes and update Vote_Weight according to node_type
+        //state update
+        vec_votes.push(*from.unsigned_key()); //insert to votes
+        if grant_index!=0 {
+            grant_data_vec[grant_index].4 += {
+                match vec_node_types_same_pubkey[vote_count_of_node] {
+                    0 => if vote==true {13} else{-13},
+                    1 => if vote==true {3} else{-3},
+                    2 => if vote==true {1} else{-1},
+                    _ =>  0,
+                }
+            };//vote_weight
+            grant_data_vec[grant_index].5 = vec_votes;//change pushed votes
+        }
+// serialize data
+        let mut data: Vec<u8> = Vec::with_capacity(grant_data_vec.len());
+        grant_data.replace_with(grant_data_vec);
+        bincode::serialize_into(&mut data, &grant_data).map_err(|err| {
+            ic_msg!(invoke_context, "Unable to serialize sysvar: {:?}", err);
+            InstructionError::GenericError
+        })?;
+// mut account and store state
+        let mut account = grant_account.try_account_ref_mut()?;
+        account.set_data(data);
+
+        Ok(())
+    }
+    else {
+        return Err(InstructionError::InvalidInstructionData);
+    }
+}
+
 
 fn transfer(
     from: &KeyedAccount,
@@ -515,6 +691,21 @@ pub fn process_instruction(
             let from = keyed_account_at_index(keyed_accounts, 0)?;
             let fnode_account = keyed_account_at_index(keyed_accounts, 1)?;
             createfnode(from, fnode_account, &reward_address, node_type, invoke_context)
+        }
+        SystemInstruction::AddGrant { id,
+            receiving_address,
+            amount,
+        } => {
+            let from = keyed_account_at_index(keyed_accounts, 0)?;
+            let grant_account = keyed_account_at_index(keyed_accounts, 1)?;
+            add_grant(from, &grant_account, id, &receiving_address, amount, invoke_context)
+        }
+        SystemInstruction::VoteOnGrant { grant_hash,
+            vote,
+        } => {
+            let from = keyed_account_at_index(keyed_accounts, 0)?;
+            let grant_account = keyed_account_at_index(keyed_accounts, 1)?;
+            vote_on_grant(from, &grant_account, grant_hash, vote, invoke_context)
         }
     }
 }

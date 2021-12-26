@@ -367,6 +367,22 @@ pub enum CliCommand {
         derived_address_seed: Option<String>,
         derived_address_program_id: Option<Pubkey>,
     },
+    CreateNode {
+        node_type: i8,
+        reward_address: Pubkey,
+        from: SignerIndex,
+        sign_only: bool,
+        dump_transaction_message: bool,
+        allow_unfunded_recipient: bool,
+        no_wait: bool,
+        blockhash_query: BlockhashQuery,
+        nonce_account: Option<Pubkey>,
+        nonce_authority: SignerIndex,
+        //        memo: Option<String>,
+        fee_payer: SignerIndex,
+//        derived_address_seed: Option<String>,
+//        derived_address_program_id: Option<Pubkey>,
+    },
 }
 
 #[derive(Debug, PartialEq)]
@@ -837,6 +853,7 @@ pub fn parse_command(
             })
         }
         ("transfer", Some(matches)) => parse_transfer(matches, default_signer, wallet_manager),
+        ("createnode", Some(matches)) => parse_create_node(matches, default_signer, wallet_manager),
         //
         ("", None) => {
             eprintln!("{}", matches.usage());
@@ -1513,6 +1530,39 @@ pub fn process_command(config: &CliConfig) -> ProcessResult {
             *fee_payer,
             derived_address_seed.clone(),
             derived_address_program_id.as_ref(),
+        ),
+        CliCommand::CreateNode {
+            node_type,
+            reward_address,
+            from,
+            sign_only,
+            dump_transaction_message,
+            allow_unfunded_recipient,
+            no_wait,
+            ref blockhash_query,
+            ref nonce_account,
+            nonce_authority,
+//            memo,
+            fee_payer,
+//            derived_address_seed,
+//            ref derived_address_program_id,
+        } => process_create_node(
+            &rpc_client,
+            config,
+            *node_type,
+            reward_address,
+            *from,
+            *sign_only,
+            *dump_transaction_message,
+            *allow_unfunded_recipient,
+            *no_wait,
+            blockhash_query,
+            nonce_account.as_ref(),
+            *nonce_authority,
+//            memo.as_ref(),
+            *fee_payer,
+//            derived_address_seed.clone(),
+//            derived_address_program_id.as_ref(),
         ),
     }
 }

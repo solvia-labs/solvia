@@ -1,10 +1,11 @@
 use crate::{
     decode_error::DecodeError,
+    hash::Hash,
     instruction::{AccountMeta, Instruction, InstructionError},
     nonce,
     pubkey::Pubkey,
     system_program,
-    sysvar::{recent_blockhashes, rent, fnode_data},
+    sysvar::{recent_blockhashes, rent, fnode_data, grant_data},
 };
 use num_derive::{FromPrimitive, ToPrimitive};
 use thiserror::Error;
@@ -305,13 +306,40 @@ pub enum SystemInstruction {
     ///
     /// # Account references
     ///   0. [WRITE, SIGNER] Funding account
-    ///   1. [WRITE, SIGNER] New account
+    ///   1. [WRITE] SysVarFNodeData account
     CreateFNode {
-        /// Address of program that will own the new account
+        /// Reward Address of the created Node
         reward_address: Pubkey,
 
-        /// Number of bytes of memory to allocate
+        /// Node Type of new node being created
         node_type: i8,
+    },
+    /// Add a new Grant to GrantData
+    ///
+    /// # Account references
+    ///   0. [WRITE, SIGNER] Funding account
+    ///   1. [WRITE] Grant Data account
+    AddGrant {
+        /// Title of Grant
+        id: i16,
+
+        /// Receiving Address of the Grant
+        receiving_address: Pubkey,
+
+        /// Amount in lamports
+        amount: u64,
+    },
+    /// Vote on a Grant
+    ///
+    /// # Account references
+    ///   0. [WRITE, SIGNER] Funding account
+    ///   1. [WRITE] Grant Data account
+    VoteOnGrant {
+        /// Address of program that will own the new account
+        grant_hash: Hash,
+
+        /// Vote, 0-No, 1- Yes
+        vote: bool,
     },
 }
 
@@ -410,6 +438,32 @@ pub fn create_fnode(from_pubkey: &Pubkey, reward_address: &Pubkey, node_type: i8
     Instruction::new_with_bincode(
         system_program::id(),
         &SystemInstruction::CreateFNode { reward_address : *reward_address, node_type },
+        account_metas,
+    )
+}
+
+pub fn add_grant(from_pubkey: &Pubkey, id: i16, receiving_address: &Pubkey, amount: u64) -> Instruction {
+    let account_metas = vec![
+        AccountMeta::new(*from_pubkey, true),
+        AccountMeta::new(*&grant_data::id(), false),
+    ];
+
+    Instruction::new_with_bincode(
+        system_program::id(),
+        &SystemInstruction::AddGrant { id, receiving_address: *receiving_address, amount },
+        account_metas,
+    )
+}
+
+pub fn vote_on_grant(from_pubkey: &Pubkey, grant_hash: Hash, vote : bool) -> Instruction {
+    let account_metas = vec![
+        AccountMeta::new(*from_pubkey, true),
+        AccountMeta::new(*&grant_data::id(), false),
+    ];
+
+    Instruction::new_with_bincode(
+        system_program::id(),
+        &SystemInstruction::VoteOnGrant { grant_hash, vote },
         account_metas,
     )
 }

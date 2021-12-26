@@ -505,7 +505,7 @@ pub fn create_account_with_fields<S: Sysvar>(
     let data_len = S::size_of().max(bincode::serialized_size(sysvar).unwrap() as usize);
     //let mut account = Account::new(lamports, data_len, &solana_program::sysvar::id());
     let mut account = Account::new(lamports, data_len, &solana_program::sysvar::id());
-    if S::id() == sysvar::fnode_data::id() {
+    if S::id() == sysvar::fnode_data::id() || S::id() == sysvar::grant_data::id(){
         account = Account::new(lamports, data_len, &solana_program::system_program::id());
     }
     to_account::<S, Account>(sysvar, &mut account).unwrap();

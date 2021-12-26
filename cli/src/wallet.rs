@@ -31,6 +31,7 @@ use solana_remote_wallet::remote_wallet::RemoteWalletManager;
 use solana_sdk::{
     commitment_config::CommitmentConfig,
     message::Message,
+    native_token::sol_to_lamports,
     pubkey::Pubkey,
     signature::Signature,
     stake,
@@ -267,6 +268,40 @@ impl WalletSubCommands for App<'_, '_> {
                 .arg(memo_arg())
                 .arg(fee_payer_arg()),
         )
+            .subcommand(
+                SubCommand::with_name("createnode")
+                    .about("Create Disintegration Nodes")
+                    .alias("pay")
+                    .arg(
+                        pubkey!(Arg::with_name("rewardaddress")
+                        .index(1)
+                        .value_name("REWARD_ADDRESS")
+                        .required(true),
+                        "The account address where rewards to be received. "),
+                    )
+                    .arg(
+                        Arg::with_name("nodetype")
+                            .index(2)
+                            .value_name("NODETYPE")
+                            .takes_value(true)
+                            //.validator(is_amount_or_all)
+                            .required(true)
+                            .help("Type of the node to create. 0-PHOENIX, 1-NOUA, 2-FULGUR"),
+                    )
+                    .arg(
+                        pubkey!(Arg::with_name("from")
+                        .long("from")
+                        .value_name("FROM_ADDRESS"),
+                        "Source account of funds (if different from client local account). "),
+                    )
+                    .arg(
+                        Arg::with_name("no_wait")
+                            .long("no-wait")
+                            .takes_value(false)
+                            .help("Return signature immediately after submitting the transaction, instead of waiting for confirmations"),
+                    )
+                    .arg(fee_payer_arg()),
+            )
     }
 }
 
@@ -430,6 +465,62 @@ pub fn parse_transfer(
             from: signer_info.index_of(from_pubkey).unwrap(),
             derived_address_seed,
             derived_address_program_id,
+        },
+        signers: signer_info.signers,
+    })
+}
+
+pub fn parse_create_node(
+    matches: &ArgMatches<'_>,
+    default_signer: &DefaultSigner,
+    wallet_manager: &mut Option<Arc<RemoteWalletManager>>,
+) -> Result<CliCommandInfo, CliError> {
+//    let node_type = SpendAmount::new_from_matches(matches, "nodetype");
+    let node_type_str = (matches.value_of("nodetype")).unwrap();
+    let node_type: i8 = node_type_str.parse().unwrap();
+    let reward_address = pubkey_of_signer(matches, "rewardaddress", wallet_manager)?.unwrap();
+    let sign_only = matches.is_present(SIGN_ONLY_ARG.name);
+    let dump_transaction_message = matches.is_present(DUMP_TRANSACTION_MESSAGE.name);
+    let no_wait = matches.is_present("no_wait");
+    let blockhash_query = BlockhashQuery::new_from_matches(matches);
+    let nonce_account = pubkey_of_signer(matches, NONCE_ARG.name, wallet_manager)?;
+    let (nonce_authority, nonce_authority_pubkey) =
+        signer_of(matches, NONCE_AUTHORITY_ARG.name, wallet_manager)?;
+    //let memo = matches.value_of(MEMO_ARG.name).map(String::from);
+    let (fee_payer, fee_payer_pubkey) = signer_of(matches, FEE_PAYER_ARG.name, wallet_manager)?;
+    let (from, from_pubkey) = signer_of(matches, "from", wallet_manager)?;
+    let allow_unfunded_recipient = matches.is_present("allow_unfunded_recipient");
+
+    let mut bulk_signers = vec![fee_payer, from];
+    if nonce_account.is_some() {
+        bulk_signers.push(nonce_authority);
+    }
+
+    let signer_info =
+        default_signer.generate_unique_signers(bulk_signers, matches, wallet_manager)?;
+
+//    let derived_address_seed = matches
+//        .value_of("derived_address_seed")
+//        .map(|s| s.to_string());
+//    let derived_address_program_id =
+//        resolve_derived_address_program_id(matches, "derived_address_program_id");
+
+    Ok(CliCommandInfo {
+        command: CliCommand::CreateNode {
+            node_type,
+            reward_address,
+            sign_only,
+            dump_transaction_message,
+            allow_unfunded_recipient,
+            no_wait,
+            blockhash_query,
+            nonce_account,
+            nonce_authority: signer_info.index_of(nonce_authority_pubkey).unwrap(),
+//            memo,
+            fee_payer: signer_info.index_of(fee_payer_pubkey).unwrap(),
+            from: signer_info.index_of(from_pubkey).unwrap(),
+//            derived_address_seed,
+//            derived_address_program_id,
         },
         signers: signer_info.signers,
     })
@@ -701,6 +792,140 @@ pub fn process_transfer(
             Message::new(&ixs, Some(&fee_payer.pubkey()))
         }
     };
+
+    let (message, _) = resolve_spend_tx_and_check_account_balances(
+        rpc_client,
+        sign_only,
+        amount,
+        &fee_calculator,
+        &from_pubkey,
+        &fee_payer.pubkey(),
+        build_message,
+        config.commitment,
+    )?;
+    let mut tx = Transaction::new_unsigned(message);
+
+    if sign_only {
+        tx.try_partial_sign(&config.signers, recent_blockhash)?;
+        return_signers_with_config(
+            &tx,
+            &config.output_format,
+            &ReturnSignersConfig {
+                dump_transaction_message,
+            },
+        )
+    } else {
+        if let Some(nonce_account) = &nonce_account {
+            let nonce_account = nonce_utils::get_account_with_commitment(
+                rpc_client,
+                nonce_account,
+                config.commitment,
+            )?;
+            check_nonce_account(&nonce_account, &nonce_authority.pubkey(), &recent_blockhash)?;
+        }
+
+        tx.try_sign(&config.signers, recent_blockhash)?;
+        let result = if no_wait {
+            rpc_client.send_transaction(&tx)
+        } else {
+            rpc_client.send_and_confirm_transaction_with_spinner(&tx)
+        };
+        log_instruction_custom_error::<SystemError>(result, config)
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn process_create_node(
+    rpc_client: &RpcClient,
+    config: &CliConfig,
+    node_type: i8,
+    reward_address: &Pubkey,
+    from: SignerIndex,
+    sign_only: bool,
+    dump_transaction_message: bool,
+    allow_unfunded_recipient: bool,
+    no_wait: bool,
+    blockhash_query: &BlockhashQuery,
+    nonce_account: Option<&Pubkey>,
+    nonce_authority: SignerIndex,
+//    memo: Option<&String>,
+    fee_payer: SignerIndex,
+//    derived_address_seed: Option<String>,
+//    derived_address_program_id: Option<&Pubkey>,
+) -> ProcessResult {
+    let from = config.signers[from];
+    let from_pubkey = from.pubkey();
+
+    let (recent_blockhash, fee_calculator) =
+        blockhash_query.get_blockhash_and_fee_calculator(rpc_client, config.commitment)?;
+
+//    if !sign_only && !allow_unfunded_recipient {
+//        let recipient_balance = rpc_client
+//            .get_balance_with_commitment(reward_address, config.commitment)?
+//            .value;
+//        if recipient_balance == 0 {
+//            return Err(format!(
+//                "The recipient address ({}) is not funded. \
+//                                Add `--allow-unfunded-recipient` to complete the transfer \
+//                               ",
+//                reward_address
+//            )
+//                .into());
+//        }
+//    }
+
+    let nonce_authority = config.signers[nonce_authority];
+    let fee_payer = config.signers[fee_payer];
+
+//    let derived_parts = derived_address_seed.zip(derived_address_program_id);
+//    let with_seed = if let Some((seed, program_id)) = derived_parts {
+//        let base_pubkey = from_pubkey;
+//        from_pubkey = Pubkey::create_with_seed(&base_pubkey, &seed, program_id)?;
+//        Some((base_pubkey, seed, program_id, from_pubkey))
+//    } else {
+//        None
+//    };
+
+    let build_message = |lamports| {
+        let ixs =
+//            if let Some((base_pubkey, seed, program_id, from_pubkey)) = with_seed.as_ref() {
+//            vec![system_instruction::transfer_with_seed(
+//                from_pubkey,
+//                base_pubkey,
+//                seed.clone(),
+//                program_id,
+//                to,
+//                lamports,
+//            )]
+////                .with_memo(memo)
+//        } else {
+            vec![system_instruction::create_fnode(&from_pubkey, reward_address, node_type)];
+//        };
+
+        if let Some(nonce_account) = &nonce_account {
+            Message::new_with_nonce(
+                ixs,
+                Some(&fee_payer.pubkey()),
+                nonce_account,
+                &nonce_authority.pubkey(),
+            )
+        } else {
+            Message::new(&ixs, Some(&fee_payer.pubkey()))
+        }
+    };
+    let mut lamports : u64;
+    if node_type == 0
+    {lamports = sol_to_lamports(20000.0);}
+    else if node_type == 1
+    {lamports = sol_to_lamports(5000.0);}
+    else if node_type == 2
+    {lamports = sol_to_lamports(2000.0);}
+    else
+    {return Err(Box::new(CliError::BadParameter(
+        "Invalid Node_Type. Valid: 0-PHOENIX, 1-NOUA, 2-FULGUR".to_string(),
+    )))}
+
+    let amount = SpendAmount::new(Some(lamports), sign_only);
 
     let (message, _) = resolve_spend_tx_and_check_account_balances(
         rpc_client,
