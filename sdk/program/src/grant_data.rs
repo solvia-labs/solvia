@@ -1,10 +1,8 @@
 //! Provides information about the Fundamental Nodes which consists of Collateral, ROIs, TotalPaid, etc
 
 use crate::pubkey::Pubkey;
-use crate::hash::{Hash, hash};
-use std::{iter::FromIterator};
+use crate::hash::{Hash};
 use std::ops::Deref;
-use crate::native_token::sol_to_lamports;
 
 /// FNodeData represents FundamentalNode data.  Members of Clock start from 0 upon
 ///  network boot.  The best way to map Clock to wallclock time is to use

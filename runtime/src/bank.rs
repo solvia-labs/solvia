@@ -2066,8 +2066,8 @@ impl Bank {
 
         let total_weight = count_phoenix * VOTES_PHOENIX + count_noua * VOTES_NOUA + count_fulgur * VOTES_FULGUR;
         //read grant data,
-        let mut grant_data_orig : VecGrantData = from_account::<VecGrantData, _>(&self.get_account(&sysvar::grant_data::id()).unwrap()).unwrap();
-        let mut grant_data = grant_data_orig.clone(); //clone foe vector
+        let grant_data_orig : VecGrantData = from_account::<VecGrantData, _>(&self.get_account(&sysvar::grant_data::id()).unwrap()).unwrap();
+        let grant_data = grant_data_orig.clone(); //clone foe vector
 
         let mut total_grants_paid : u64 = 0;
         for grant in grant_data.iter(){

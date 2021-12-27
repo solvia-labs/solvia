@@ -336,8 +336,8 @@ fn add_grant(
     let mut grant_data: VecGrantData = Some(get_sysvar::<VecGrantData>(invoke_context, &sysvar::grant_data::id())?).unwrap();
     let mut grant_data_vec = grant_data.clone(); // clone
     match grant_data_vec.binary_search_by(|(hash, _, _, _, _, _)| grant_hash.cmp(hash)) {
-        Ok(index) => return Err(InstructionError::MissingRequiredSignature),
-        Err(index) => grant_data.add(new_grant),
+        Ok(_) => return Err(InstructionError::MissingRequiredSignature),
+        Err(_) => grant_data.add(new_grant),
     }
     grant_data_vec = grant_data.clone();
 // serialize data
@@ -390,11 +390,11 @@ fn vote_on_grant(
 
 
     //Find which node is trying to vote return Err if Node is not present
-    let mut fnode_data: FNodeData = Some(get_sysvar::<FNodeData>(invoke_context, &sysvar::fnode_data::id())?).unwrap();
+    let fnode_data: FNodeData = Some(get_sysvar::<FNodeData>(invoke_context, &sysvar::fnode_data::id())?).unwrap();
     let fnode_data_vec = fnode_data.clone(); // clone to get vector
     let mut node_count = 0;
     let mut vote_count_of_node = 0;
-    let mut vec_votes :  Vec<Pubkey> = Vec::new();
+    let mut vec_votes :  Vec<Pubkey>;
     let mut vec_node_types_same_pubkey : Vec<i8> = Vec::new();
 
     for fnode in fnode_data_vec.iter()
@@ -411,10 +411,10 @@ fn vote_on_grant(
     if node_count==0 { return Err(InstructionError::InvalidInstructionData); }
     let mut grant_data: VecGrantData = Some(get_sysvar::<VecGrantData>(invoke_context, &sysvar::grant_data::id())?).unwrap();
     let mut grant_data_vec = grant_data.clone(); // clone to get vector
-    let mut grant_index = 0;
+    let mut grant_index;
     match grant_data_vec.binary_search_by(|(hash, _, _, _, _, _)| grant_hash.cmp(hash)) {
         Ok(index) => {vec_votes = grant_data_vec[index].5.clone(); grant_index = index},
-        Err(index) => return Err(InstructionError::InvalidInstructionData),
+        Err(_) => return Err(InstructionError::InvalidInstructionData),
     }
 
     for vote in vec_votes.iter(){
