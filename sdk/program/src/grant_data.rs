@@ -24,6 +24,8 @@ pub const VOTES_FULGUR: i32 = 1;
 pub const MAX_AMOUNT_PER_GRANT: f64 = 10000.0;
 pub const MAX_GRANT_PER_MONTH: f64 =100000.0;
 
+pub const GRANT_AUTH_PUBKEY: &str  = "8WFJt4rKLTnUhUZHFWjviUo6kPQyQLh9hyRZW5C53x5n";
+
 pub type GrantData = (GrantHash, ID, ReceivingAddress, Amount, VoteWeight, Votes);
 #[repr(C)]
 #[derive(Serialize, Deserialize, PartialEq, Debug, Default)]

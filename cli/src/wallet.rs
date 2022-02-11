@@ -669,7 +669,7 @@ pub fn parse_vote_on_grant(
 //    let node_type = SpendAmount::new_from_matches(matches, "nodetype");
     let grant_hash_str = (matches.value_of("granthash")).unwrap();
     let grant_hash: Hash = grant_hash_str.parse::<Hash>().unwrap();
-    let vote_type_str = (matches.value_of("granthash")).unwrap();
+    let vote_type_str = (matches.value_of("votetype")).unwrap();
     let vote_type : bool;
     match vote_type_str {
         "yes" => vote_type = true,

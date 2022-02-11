@@ -306,7 +306,7 @@ fn add_grant(
         return Err(InstructionError::MissingRequiredSignature);
     }
     //todo : add auth_pubkey
-    if from.unsigned_key() != from.unsigned_key() //auth_pubkey_to_add_grant
+    if from.unsigned_key().to_string() != *GRANT_AUTH_PUBKEY //auth_pubkey_to_add_grant
     {
         ic_msg!(
             invoke_context,
@@ -321,7 +321,6 @@ fn add_grant(
     let id_bytes = serialize(&id).unwrap();
     let recv_address_bytes = serialize(&receiving_address).unwrap();
     let amount_bytes = serialize(&amount).unwrap();
-//    let mut vec_bytes: Vec<u8> = Vec::with_capacity(id_bytes.len()+recv_address_bytes.len()+amount_bytes.len());
     let mut vec_bytes: Vec<u8> = Vec::new();
     vec_bytes.extend(id_bytes);
     vec_bytes.extend(recv_address_bytes);
@@ -390,7 +389,7 @@ fn vote_on_grant(
 
 
     //Find which node is trying to vote return Err if Node is not present
-    let fnode_data: FNodeData = Some(get_sysvar::<FNodeData>(invoke_context, &sysvar::fnode_data::id())?).unwrap();
+    let fnode_data: FNodeData = Some(get_sysvar::<FNodeData>(invoke-_context, &sysvar::fnode_data::id())?).unwrap();
     let fnode_data_vec = fnode_data.clone(); // clone to get vector
     let mut node_count = 0;
     let mut vote_count_of_node = 0;
@@ -399,12 +398,12 @@ fn vote_on_grant(
 
     for fnode in fnode_data_vec.iter()
     {
-        if fnode.3 == true { //count only active nodes
+        //if fnode.3 == true { //count only active nodes
             if fnode.0 == *from.unsigned_key() {
                 node_count += 1;
                 vec_node_types_same_pubkey.push(fnode.1);
             }
-        }
+        //}
     }
     // todo: remove zero pubkey from vec_votes when first vote comes
     vec_node_types_same_pubkey.sort();
@@ -417,9 +416,10 @@ fn vote_on_grant(
         Err(_) => return Err(InstructionError::InvalidInstructionData),
     }
 
-    for vote in vec_votes.iter(){
-        if vote == from.unsigned_key() {vote_count_of_node += 1}
+    for vote_pubkey in vec_votes.iter(){
+        if vote_pubkey == from.unsigned_key() {vote_count_of_node += 1}
     }
+
     if node_count > vote_count_of_node {
         // insert frompubkey to Votes and update Vote_Weight according to node_type
         //state update

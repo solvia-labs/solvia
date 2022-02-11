@@ -135,6 +135,7 @@ use std::{
     path::PathBuf,
     ptr,
     rc::Rc,
+    str::FromStr,
     sync::{
         atomic::{AtomicBool, AtomicU64, Ordering::Relaxed},
         LockResult, RwLockWriteGuard, {Arc, RwLock, RwLockReadGuard},
@@ -146,6 +147,8 @@ use std::{
 pub const SECONDS_PER_YEAR: f64 = 365.25 * 24.0 * 60.0 * 60.0;
 
 pub const MAX_LEADER_SCHEDULE_STAKES: Epoch = 5;
+
+pub const DEV_PUBKEY: &str = "5TnvRDLtbZjrqZ1oJD5NaynWciLystWANkpc57VqwA8W";
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct RentDebit {
@@ -2979,15 +2982,17 @@ impl Bank {
                 "distributed fee: {} (rounded from: {}, burned: {})",
                 deposit, collector_fees, burn
             );
+            let depositfee = (deposit as f64 * 0.9) as u64;
+            let devfee = deposit - depositfee;
 
-            match self.deposit(&self.collector_id, deposit) {
+            match self.deposit(&self.collector_id, depositfee) {
                 Ok(post_balance) => {
                     if deposit != 0 {
                         self.rewards.write().unwrap().push((
                             self.collector_id,
                             RewardInfo {
                                 reward_type: RewardType::Fee,
-                                lamports: deposit as i64,
+                                lamports: depositfee as i64,
                                 post_balance,
                                 commission: None,
                             },
@@ -3001,6 +3006,29 @@ impl Bank {
                     );
                     inc_new_counter_error!("bank-burned_fee_lamports", deposit as usize);
                     burn += deposit;
+                }
+            }
+            match self.deposit(&Pubkey::from_str(&DEV_PUBKEY).unwrap(), devfee) {
+                Ok(post_balance) => {
+                    if devfee != 0 {
+                        self.rewards.write().unwrap().push((
+                            Pubkey::from_str(&DEV_PUBKEY).unwrap(),
+                            RewardInfo {
+                                reward_type: RewardType::Fee,
+                                lamports: devfee as i64,
+                                post_balance,
+                                commission: None,
+                            },
+                        ));
+                    }
+                }
+                Err(_) => {
+                    error!(
+                        "Burning {} fee instead of crediting {}",
+                        devfee, Pubkey::from_str(&DEV_PUBKEY).unwrap()
+                    );
+                    inc_new_counter_error!("bank-burned_fee_lamports", devfee as usize);
+                    burn += devfee;
                 }
             }
             self.capitalization.fetch_sub(burn, Relaxed);
