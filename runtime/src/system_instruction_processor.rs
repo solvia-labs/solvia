@@ -389,7 +389,7 @@ fn vote_on_grant(
 
 
     //Find which node is trying to vote return Err if Node is not present
-    let fnode_data: FNodeData = Some(get_sysvar::<FNodeData>(invoke-_context, &sysvar::fnode_data::id())?).unwrap();
+    let fnode_data: FNodeData = Some(get_sysvar::<FNodeData>(invoke_context, &sysvar::fnode_data::id())?).unwrap();
     let fnode_data_vec = fnode_data.clone(); // clone to get vector
     let mut node_count = 0;
     let mut vote_count_of_node = 0;
