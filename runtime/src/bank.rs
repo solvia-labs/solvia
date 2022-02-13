@@ -2076,7 +2076,7 @@ impl Bank {
         for grant in grant_data.iter(){
             let grant_vote_weight = grant.4;
 
-            if grant_vote_weight as f32 > total_weight as f32 * 0.3 // 30% criteria
+            if grant_vote_weight as f32 > total_weight as f32 * 0.6 // 60% criteria
             {
                 //pay_grant if valid amount
                 if total_grants_paid + grant.3 <= sol_to_lamports(MAX_GRANT_PER_MONTH) {
