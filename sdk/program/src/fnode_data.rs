@@ -41,7 +41,7 @@ impl FNodeData {
         (self.0).clear();
         let mut index =0;
         while index < new_node_vec.len(){
-            (self.0).push(new_node_vec[index]);
+            (self.0).push(new_node_vec[index].clone());
             index+=1;
         }
     }

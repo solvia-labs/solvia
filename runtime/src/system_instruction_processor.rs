@@ -14,7 +14,7 @@ use solana_sdk::{
     pubkey::Pubkey,
     system_instruction::{SystemError, SystemInstruction, MAX_PERMITTED_DATA_LENGTH},
     system_program,
-    sysvar::{self, recent_blockhashes::RecentBlockhashes, rent::Rent},
+    sysvar::{self, clock::Clock, recent_blockhashes::RecentBlockhashes, rent::Rent},
 };
 use solana_sdk::{fnode_data::*,grant_data::*};
 use std::collections::HashSet;
@@ -282,6 +282,7 @@ fn createfnode(
 fn add_grant(
     from: &KeyedAccount,
     grant_account: &KeyedAccount,
+    clock_info: &Clock,
     id: i16,
     receiving_address: &Pubkey,
     amount: u64,
@@ -316,6 +317,14 @@ fn add_grant(
         return Err(InstructionError::MissingRequiredSignature);
     }
 
+    if amount > sol_to_lamports(MAX_GRANT_PER_MONTH) {
+        ic_msg!(
+            invoke_context,
+            "Max Grant Amount exceeded"
+        );
+        return Err(InstructionError::InvalidInstructionData);
+    }
+
     //let vec_votes :  Vec<Pubkey> = Vec::new();   //depr by new vec_votes....
     // todo calc hash of <ID,recv_addr,amount>... remove this frji data
     let id_bytes = serialize(&id).unwrap();
@@ -329,18 +338,85 @@ fn add_grant(
 
     let vec_votes = vec![Pubkey::default()];
 
-    let new_grant: GrantData = (grant_hash, id, *receiving_address, amount, 0 as i32, vec_votes);
+    //calculate first_pay_epoch
+    let first_pay_epoch : u64;
+    let current_epoch = clock_info.epoch.clone();
+    first_pay_epoch = current_epoch+(15 - (current_epoch%15));
+    let new_grant: GrantData = (grant_hash, id, *receiving_address, amount, 0 as i32, first_pay_epoch, vec_votes);
 
 // Read Sysvar data
     let mut grant_data: VecGrantData = Some(get_sysvar::<VecGrantData>(invoke_context, &sysvar::grant_data::id())?).unwrap();
     let mut grant_data_vec = grant_data.clone(); // clone
-    match grant_data_vec.binary_search_by(|(hash, _, _, _, _, _)| grant_hash.cmp(hash)) {
-        Ok(_) => return Err(InstructionError::MissingRequiredSignature),
+    match grant_data_vec.binary_search_by(|(hash, _, _, _, _, _, _)| grant_hash.cmp(hash)) {
+        Ok(_) => return Err(InstructionError::InvalidInstructionData),
         Err(_) => grant_data.add(new_grant),
     }
     grant_data_vec = grant_data.clone();
 // serialize data
     let mut data: Vec<u8> = Vec::with_capacity(grant_data_vec.len());
+    bincode::serialize_into(&mut data, &grant_data).map_err(|err| {
+        ic_msg!(invoke_context, "Unable to serialize sysvar: {:?}", err);
+        InstructionError::GenericError
+    })?;
+// mut account and store state
+    let mut account = grant_account.try_account_ref_mut()?;
+    account.set_data(data);
+
+    Ok(())
+}
+
+fn dissolve_grant(
+    from: &KeyedAccount,
+    grant_account: &KeyedAccount,
+    grant_hash: Hash,
+    invoke_context: &dyn InvokeContext,
+) -> Result<(), InstructionError> {
+    // checks to make sure data is written to GrantData
+    if grant_account.unsigned_key() != &sysvar::grant_data::id()
+    {
+        ic_msg!(
+            invoke_context,
+            "Vote: account {} is not GrantData",
+            grant_account.unsigned_key()
+        );
+        return Err(InstructionError::InvalidInstructionData);
+    }
+    if from.signer_key().is_none() {
+        ic_msg!(
+            invoke_context,
+            "Vote: `from` account {} must sign",
+            from.unsigned_key()
+        );
+        return Err(InstructionError::MissingRequiredSignature);
+    }
+    //todo : add auth_pubkey
+    if from.unsigned_key().to_string() != *GRANT_AUTH_PUBKEY //auth_pubkey_to_add_grant
+    {
+        ic_msg!(
+            invoke_context,
+            "AddGrant: {} not authorised_pubkey ",
+            from.unsigned_key()
+        );
+        return Err(InstructionError::MissingRequiredSignature);
+    }
+
+
+    // todo: remove zero pubkey from vec_votes when first vote comes
+    let mut grant_data: VecGrantData = Some(get_sysvar::<VecGrantData>(invoke_context, &sysvar::grant_data::id())?).unwrap();
+    let mut grant_data_vec = grant_data.clone(); // clone to get vector
+    let grant_index;
+    match grant_data_vec.binary_search_by(|(hash, _, _, _, _, _, _)| grant_hash.cmp(hash)) {
+        Ok(index) => {grant_index = index},
+        Err(_) => return Err(InstructionError::InvalidInstructionData),
+    }
+
+    // found grant_index, now delete that particular grant
+    if grant_index!=0 {
+        grant_data_vec.remove(grant_index);
+    }
+// serialize data
+    let mut data: Vec<u8> = Vec::with_capacity(grant_data_vec.len());
+    grant_data.replace_with(grant_data_vec);
     bincode::serialize_into(&mut data, &grant_data).map_err(|err| {
         ic_msg!(invoke_context, "Unable to serialize sysvar: {:?}", err);
         InstructionError::GenericError
@@ -399,7 +475,7 @@ fn vote_on_grant(
     for fnode in fnode_data_vec.iter()
     {
         //if fnode.3 == true { //count only active nodes
-            if fnode.0 == *from.unsigned_key() {
+            if fnode.0 == from.unsigned_key().clone() {
                 node_count += 1;
                 vec_node_types_same_pubkey.push(fnode.1);
             }
@@ -411,8 +487,8 @@ fn vote_on_grant(
     let mut grant_data: VecGrantData = Some(get_sysvar::<VecGrantData>(invoke_context, &sysvar::grant_data::id())?).unwrap();
     let mut grant_data_vec = grant_data.clone(); // clone to get vector
     let mut grant_index;
-    match grant_data_vec.binary_search_by(|(hash, _, _, _, _, _)| grant_hash.cmp(hash)) {
-        Ok(index) => {vec_votes = grant_data_vec[index].5.clone(); grant_index = index},
+    match grant_data_vec.binary_search_by(|(hash, _, _, _, _, _, _)| grant_hash.cmp(hash)) {
+        Ok(index) => {vec_votes = grant_data_vec[index].6.clone(); grant_index = index},
         Err(_) => return Err(InstructionError::InvalidInstructionData),
     }
 
@@ -433,7 +509,7 @@ fn vote_on_grant(
                     _ =>  0,
                 }
             };//vote_weight
-            grant_data_vec[grant_index].5 = vec_votes;//change pushed votes
+            grant_data_vec[grant_index].6 = vec_votes;//change pushed votes
         }
 // serialize data
         let mut data: Vec<u8> = Vec::with_capacity(grant_data_vec.len());
@@ -698,7 +774,8 @@ pub fn process_instruction(
         } => {
             let from = keyed_account_at_index(keyed_accounts, 0)?;
             let grant_account = keyed_account_at_index(keyed_accounts, 1)?;
-            add_grant(from, &grant_account, id, &receiving_address, amount, invoke_context)
+            let clock_account = &from_keyed_account::<Clock>(keyed_account_at_index(keyed_accounts, 2)?)?;
+            add_grant(from, &grant_account, clock_account, id, &receiving_address, amount, invoke_context)
         }
         SystemInstruction::VoteOnGrant { grant_hash,
             vote,
@@ -706,6 +783,12 @@ pub fn process_instruction(
             let from = keyed_account_at_index(keyed_accounts, 0)?;
             let grant_account = keyed_account_at_index(keyed_accounts, 1)?;
             vote_on_grant(from, &grant_account, grant_hash, vote, invoke_context)
+        }
+        SystemInstruction::DissolveGrant { grant_hash
+        } => {
+            let from = keyed_account_at_index(keyed_accounts, 0)?;
+            let grant_account = keyed_account_at_index(keyed_accounts, 1)?;
+            dissolve_grant(from, &grant_account, grant_hash, invoke_context)
         }
     }
 }

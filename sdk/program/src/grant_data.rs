@@ -14,6 +14,7 @@ pub type ID = i16;
 pub type ReceivingAddress = Pubkey;
 pub type Amount = u64;
 pub type VoteWeight = i32;
+pub type FirstEpoch = u64;
 pub type Votes = Vec<Pubkey>;
 
 // Constants
@@ -21,12 +22,12 @@ pub type Votes = Vec<Pubkey>;
 pub const VOTES_PHOENIX : i32 = 13;
 pub const VOTES_NOUA: i32 = 3;
 pub const VOTES_FULGUR: i32 = 1;
-pub const MAX_AMOUNT_PER_GRANT: f64 = 10000.0;
+pub const MAX_AMOUNT_PER_GRANT: f64 = 20000.0;
 pub const MAX_GRANT_PER_MONTH: f64 =100000.0;
 
 pub const GRANT_AUTH_PUBKEY: &str  = "8WFJt4rKLTnUhUZHFWjviUo6kPQyQLh9hyRZW5C53x5n";
 
-pub type GrantData = (GrantHash, ID, ReceivingAddress, Amount, VoteWeight, Votes);
+pub type GrantData = (GrantHash, ID, ReceivingAddress, Amount, VoteWeight, FirstEpoch, Votes);
 #[repr(C)]
 #[derive(Serialize, Deserialize, PartialEq, Debug, Default)]
 pub struct VecGrantData(Vec<GrantData>);
@@ -34,7 +35,7 @@ pub struct VecGrantData(Vec<GrantData>);
 // todo : make vector or array of FNodeData
 
 impl VecGrantData {
-    pub fn replace_with(&mut self, new_grant_data_vec: Vec<(GrantHash, ID, ReceivingAddress, Amount, VoteWeight, Votes)>) {
+    pub fn replace_with(&mut self, new_grant_data_vec: Vec<(GrantHash, ID, ReceivingAddress, Amount, VoteWeight, FirstEpoch, Votes)>) {
         (self.0).clear();
         let mut index =0;
         while index < new_grant_data_vec.len(){
@@ -49,7 +50,7 @@ impl VecGrantData {
 
     pub fn new_frji(&mut self) {
         let vec_votes = vec![Pubkey::default()];
-        let new_grant : GrantData = (Hash::new(&[0 as u8; 32]), 0, Pubkey::default(), 0 as u64, 0, vec_votes.clone());
+        let new_grant : GrantData = (Hash::new(&[0 as u8; 32]), 0, Pubkey::default(), 0 as u64, 0, 0 as u64, vec_votes.clone());
         if (self.0).len()!=0{
         (self.0).clear();}
         self.add(new_grant);

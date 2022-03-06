@@ -51,7 +51,7 @@ export function clusterName(cluster: Cluster): string {
   }
 }
 
-export const MAINNET_BETA_URL = clusterApiUrl("mainnet-beta");
+export const MAINNET_BETA_URL = clusterApiUrl("mainnet-beta");//"http://136.243.69.169:8899/";//
 export const TESTNET_URL = clusterApiUrl("testnet");
 export const DEVNET_URL = clusterApiUrl("devnet");
 

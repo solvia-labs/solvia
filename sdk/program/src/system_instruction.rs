@@ -5,7 +5,7 @@ use crate::{
     nonce,
     pubkey::Pubkey,
     system_program,
-    sysvar::{recent_blockhashes, rent, fnode_data, grant_data},
+    sysvar::{clock, recent_blockhashes, rent, fnode_data, grant_data},
 };
 use num_derive::{FromPrimitive, ToPrimitive};
 use thiserror::Error;
@@ -318,7 +318,8 @@ pub enum SystemInstruction {
     ///
     /// # Account references
     ///   0. [WRITE, SIGNER] Funding account
-    ///   1. [WRITE] Grant Data account
+    ///   1. [] Grant Data account
+    ///   2. [] Clock Sysvar account
     AddGrant {
         /// Title of Grant
         id: i16,
@@ -333,13 +334,22 @@ pub enum SystemInstruction {
     ///
     /// # Account references
     ///   0. [WRITE, SIGNER] Funding account
-    ///   1. [WRITE] Grant Data account
+    ///   1. [] Grant Data account
     VoteOnGrant {
-        /// Address of program that will own the new account
+        /// Hash of the grant
         grant_hash: Hash,
 
         /// Vote, 0-No, 1- Yes
         vote: bool,
+    },
+    /// Dissolve a Grant
+    ///
+    /// # Account references
+    ///   0. [WRITE, SIGNER] Funding account
+    ///   1. [WRITE] Grant Data account
+    DissolveGrant {
+        /// Hash of the grant
+        grant_hash: Hash,
     },
 }
 
@@ -446,6 +456,7 @@ pub fn add_grant(from_pubkey: &Pubkey, id: i16, receiving_address: &Pubkey, amou
     let account_metas = vec![
         AccountMeta::new(*from_pubkey, true),
         AccountMeta::new(*&grant_data::id(), false),
+        AccountMeta::new_readonly(clock::id(), false)
     ];
 
     Instruction::new_with_bincode(
@@ -464,6 +475,19 @@ pub fn vote_on_grant(from_pubkey: &Pubkey, grant_hash: Hash, vote : bool) -> Ins
     Instruction::new_with_bincode(
         system_program::id(),
         &SystemInstruction::VoteOnGrant { grant_hash, vote },
+        account_metas,
+    )
+}
+
+pub fn dissolve_grant(from_pubkey: &Pubkey, grant_hash: Hash) -> Instruction {
+    let account_metas = vec![
+        AccountMeta::new(*from_pubkey, true),
+        AccountMeta::new(*&grant_data::id(), false),
+    ];
+
+    Instruction::new_with_bincode(
+        system_program::id(),
+        &SystemInstruction::DissolveGrant { grant_hash },
         account_metas,
     )
 }

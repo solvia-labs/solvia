@@ -1877,6 +1877,21 @@ impl Bank {
         });
     }
 
+    fn update_grant_data(&self, new_grant_data : VecGrantData) {
+        self.update_sysvar_account(&sysvar::grant_data::id(), |account| {
+//            let mut fnode_data = account
+//                .as_ref()
+//                .map(|account| from_account::<FNodeData, _>(account).unwrap())
+//                .unwrap_or_default();
+            // todo : implement add, modify, delete carefully
+            // fnode_data.add(self);
+            create_account(
+                &new_grant_data,
+                self.inherit_specially_retained_account_fields(account),
+            )
+        });
+    }
+
     fn add_grant_data_frji(&self) {
         self.update_sysvar_account(&sysvar::grant_data::id(), |account| {
             let mut grant_data = account
@@ -2069,28 +2084,56 @@ impl Bank {
 
         let total_weight = count_phoenix * VOTES_PHOENIX + count_noua * VOTES_NOUA + count_fulgur * VOTES_FULGUR;
         //read grant data,
-        let grant_data_orig : VecGrantData = from_account::<VecGrantData, _>(&self.get_account(&sysvar::grant_data::id()).unwrap()).unwrap();
-        let grant_data = grant_data_orig.clone(); //clone foe vector
+        let mut grant_data_orig: VecGrantData = from_account::<VecGrantData, _>(&self.get_account(&sysvar::grant_data::id()).unwrap()).unwrap();
+        let mut grant_data = grant_data_orig.clone(); //clone for vector
 
         let mut total_grants_paid : u64 = 0;
-        for grant in grant_data.iter(){
-            let grant_vote_weight = grant.4;
+        let mut grant_indexes_removal: Vec<usize> = Vec::new();
+        for (grant_index,grant) in grant_data.iter().enumerate() {
+            if grant_index != 0 {
+                let grant_vote_weight = grant.4;
 
-            if grant_vote_weight as f32 > total_weight as f32 * 0.6 // 60% criteria
-            {
-                //pay_grant if valid amount
-                if total_grants_paid + grant.3 <= sol_to_lamports(MAX_GRANT_PER_MONTH) {
-                    if grant.3 <= sol_to_lamports(MAX_AMOUNT_PER_GRANT)
+                if grant_vote_weight as f32 > total_weight as f32 * 0.6 // 60% criteria
+                {
+                    //pay grant only when epoch is within range i.e. epoch <=paystartepoch*10
+                    //mark those grants for removal who have votes but epoch > paystartepoch*10
+                    //pay_grant if valid amount
+                    if epoch <= grant.5 * 15
                     {
-                        self.pay_grant(grant.2, grant.3);
-                        total_grants_paid += grant.3;
+                        if total_grants_paid + grant.3 <= sol_to_lamports(MAX_GRANT_PER_MONTH) {
+                            if grant.3 <= sol_to_lamports(MAX_AMOUNT_PER_GRANT)
+                            {
+                                if epoch == grant.5 {
+                                    //first payment == pay only 30%
+                                    self.pay_grant(grant.2, grant.3 * 30/100);
+                                    total_grants_paid += grant.3;
+                                } else {
+                                    //after first payment, pay remaining 70% in 9 installments
+                                    self.pay_grant(grant.2, grant.3 * 70 / 900);
+                                    total_grants_paid += grant.3;
+                                }
+                            }
+                        }
+                    } else {
+                        //grant has votes but paid on all epochs mark for removal
+                        grant_indexes_removal.push(grant_index);
                     }
+                } else {
+                    //mark such grants for removal
+                    //todo: dont remove 0 index reference grant
+                    grant_indexes_removal.push(grant_index);
                 }
             }
         }
 
-        //processed all grants, remove all and store dummy grant
-        self.add_grant_data_frji();
+        //processed all grants, remove those not passing criteria or are expired except store dummy grant
+        //todo : dont remove all grants
+        for index in grant_indexes_removal.iter()
+        {
+            grant_data.remove(*index);
+        }
+        grant_data_orig.replace_with(grant_data);
+        self.update_grant_data(grant_data_orig);
     }
 
 

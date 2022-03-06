@@ -64,7 +64,7 @@ pub fn parse_system(
             })
         }
         SystemInstruction::AddGrant { id, receiving_address, amount } => {
-            check_num_system_accounts(&instruction.accounts, 2)?;
+            check_num_system_accounts(&instruction.accounts, 3)?;
             Ok(ParsedInstructionEnum {
                 instruction_type: "addgrant".to_string(),
                 info: json!({
@@ -83,6 +83,16 @@ pub fn parse_system(
                     "source": account_keys[instruction.accounts[0] as usize].to_string(),
                     "grant_hash": grant_hash.to_string(),
                     "vote": vote,
+                }),
+            })
+        }
+        SystemInstruction::DissolveGrant { grant_hash } => {
+            check_num_system_accounts(&instruction.accounts, 2)?;
+            Ok(ParsedInstructionEnum {
+                instruction_type: "DissolveGrant".to_string(),
+                info: json!({
+                    "source": account_keys[instruction.accounts[0] as usize].to_string(),
+                    "grant_hash": grant_hash.to_string(),
                 }),
             })
         }
