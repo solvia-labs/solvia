@@ -57,7 +57,7 @@ export function NonceWithdrawDetailsCard(props: {
       </tr>
 
       <tr>
-        <td>Withdraw Amount (SOL)</td>
+        <td>Withdraw Amount (SOLVIA)</td>
         <td className="text-lg-right">{lamportsToSolString(info.lamports)}</td>
       </tr>
     </InstructionCard>

@@ -159,8 +159,8 @@ function TpsBarChart({ performanceInfo }: TpsBarChartProps) {
     }),
     datasets: [
       {
-        backgroundColor: "#00D192",
-        hoverBackgroundColor: "#00D192",
+        backgroundColor: "#fab621",
+        hoverBackgroundColor: "#fbc652",
         borderWidth: 0,
         data: seriesData.map((val) => val || 0),
       },

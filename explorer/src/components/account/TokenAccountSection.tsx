@@ -298,7 +298,7 @@ function TokenAccountCard({
         )}
         {info.rentExemptReserve && (
           <tr>
-            <td>Rent-exempt reserve (SOL)</td>
+            <td>Rent-exempt reserve (SOLVIA)</td>
             <td className="text-lg-right">
               <>
                 ◎

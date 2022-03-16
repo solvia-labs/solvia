@@ -51,8 +51,8 @@ fi
 
 default_arg --ledger "$SOLANA_CONFIG_DIR"/bootstrap-validator
 default_arg --faucet-pubkey "$SOLANA_CONFIG_DIR"/faucet.json
-default_arg --faucet-lamports 500000000000000000
+default_arg --faucet-lamports 5000000000
 default_arg --hashes-per-tick auto
-default_arg --cluster-type development
+
 
 $solana_genesis "${args[@]}"

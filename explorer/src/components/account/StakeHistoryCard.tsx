@@ -28,9 +28,9 @@ export function StakeHistoryCard({
             <thead>
               <tr>
                 <th className="w-1 text-muted">Epoch</th>
-                <th className="text-muted">Effective (SOL)</th>
-                <th className="text-muted">Activating (SOL)</th>
-                <th className="text-muted">Deactivating (SOL)</th>
+                <th className="text-muted">Effective (SOLVIA)</th>
+                <th className="text-muted">Activating (SOLVIA)</th>
+                <th className="text-muted">Deactivating (SOLVIA)</th>
               </tr>
             </thead>
             <tbody className="list">

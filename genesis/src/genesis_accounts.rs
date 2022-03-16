@@ -10,17 +10,17 @@ const UNLOCKS_ALL_AT_9_MONTHS: UnlockInfo = UnlockInfo {
     cliff_years: 0.75,
     unlocks: 0,
     unlock_years: 0.0,
-    custodian: "Mc5XB47H3DKJHym5RLa9mPzWv5snERsF3KNv5AauXK8",
+    custodian: "6VzcvNJGoCFoR2v8j5ynDSs5o3fWiBzvbeNEMyQmqHyr",
 };
 
 // 9 month schedule is 50% after 9 months, then monthly for 2 years
-const UNLOCKS_HALF_AT_9_MONTHS: UnlockInfo = UnlockInfo {
-    cliff_fraction: 0.5,
-    cliff_years: 0.75,
-    unlocks: 24,
-    unlock_years: 2.0,
-    custodian: "Mc5XB47H3DKJHym5RLa9mPzWv5snERsF3KNv5AauXK8",
-};
+//const UNLOCKS_HALF_AT_9_MONTHS: UnlockInfo = UnlockInfo {
+//    cliff_fraction: 0.5,
+//    cliff_years: 0.75,
+//    unlocks: 24,
+//    unlock_years: 2.0,
+//    custodian: "6VzcvNJGoCFoR2v8j5ynDSs5o3fWiBzvbeNEMyQmqHyr",
+//};
 
 // no lockups
 const UNLOCKS_ALL_DAY_ZERO: UnlockInfo = UnlockInfo {
@@ -28,53 +28,53 @@ const UNLOCKS_ALL_DAY_ZERO: UnlockInfo = UnlockInfo {
     cliff_years: 0.0,
     unlocks: 0,
     unlock_years: 0.0,
-    custodian: "Mc5XB47H3DKJHym5RLa9mPzWv5snERsF3KNv5AauXK8",
+    custodian: "6VzcvNJGoCFoR2v8j5ynDSs5o3fWiBzvbeNEMyQmqHyr",
 };
 
-pub const CREATOR_STAKER_INFOS: &[StakerInfo] = &[
-    StakerInfo {
-        name: "impossible pizza",
-        staker: "uE3TVEffRp69mrgknYr71M18GDqL7GxCNGYYRjb3oUt",
-        lamports: 5_000_000 * LAMPORTS_PER_SOL,
-        withdrawer: Some("59SLqk4ete5QttM1WmjfMA7uNJnJVFLQqXJSy9rvuj7c"),
-    },
-];
+//pub const CREATOR_STAKER_INFOS: &[StakerInfo] = &[
+//    StakerInfo {
+//        name: "impossible pizza",
+//        staker: "uE3TVEffRp69mrgknYr71M18GDqL7GxCNGYYRjb3oUt",
+//        lamports: 5_000_000 * LAMPORTS_PER_SOL,
+//        withdrawer: Some("59SLqk4ete5QttM1WmjfMA7uNJnJVFLQqXJSy9rvuj7c"),
+//    },
+//];
 
 pub const SERVICE_STAKER_INFOS: &[StakerInfo] = &[
     StakerInfo {
         name: "wretched texture",
-        staker: "B1hegzthtfNQxyEPzkESySxRjMidNqaxrzbQ28GaEwn8",
-        lamports: 225_000 * LAMPORTS_PER_SOL,
-        withdrawer: Some("HWzeqw1Yk5uiLgT2uGUim5ocFJNCwYUFbeCtDVpx9yUb"),
+        staker: "ALv8xLUVJL14Gzf7uAiRM52kHd6KwjTkofMnGk95CmeY",
+        lamports: 100_000 * LAMPORTS_PER_SOL,
+        withdrawer: Some("BpsVM1y7GFT6C6FiTzrPbxDZ3hK5ktZn7rwcrLigduKb"),
     },
 ];
 
 pub const FOUNDATION_STAKER_INFOS: &[StakerInfo] = &[
     StakerInfo {
         name: "lyrical supermarket",
-        staker: "4xh7vtQCTim3vgpQ1dQQWjtKrBSkbtL3s15FimXVJAAP",
-        lamports: 5_000_000 * LAMPORTS_PER_SOL,
-        withdrawer: Some("C7WS9ic7KN9XNcLsNoMvzTvbzURM3rFGDEQN7qJMWNLn"),
+        staker: "77GPhHvrUaTRuWPcXnnjCuaGLBm81XjpMZTjk5dLias",
+        lamports: 2_900_000 * LAMPORTS_PER_SOL,
+        withdrawer: Some("5Ryf6H4VeJjPwWMuM42ZoT2JgWr91zFUSRp6Vfqp9sV3"),
     },
 ];
 
-pub const GRANTS_STAKER_INFOS: &[StakerInfo] = &[
-    StakerInfo {
-        name: "rightful agreement",
-        staker: "8w5cgUQfXAZZWyVgenPHpQ1uABXUVLnymqXbuZPx7yqt",
-        lamports: 5_000_000 * LAMPORTS_PER_SOL,
-        withdrawer: Some("EDwSQShtUWQtmFfN9SpUUd6hgonL7tRdxngAsNKv9Pe6"),
-    },
-];
-
-pub const COMMUNITY_STAKER_INFOS: &[StakerInfo] = &[
-    StakerInfo {
-        name: "shrill charity",
-        staker: "Eo1iDtrZZiAkQFA8u431hedChaSUnPbU8MWg849MFvEZ",
-        lamports: 5_000_000 * LAMPORTS_PER_SOL,
-        withdrawer: Some("8CUUMKYNGxdgYio5CLHRHyzMEhhVRMcqefgE6dLqnVRK"),
-    },
-];
+//pub const GRANTS_STAKER_INFOS: &[StakerInfo] = &[
+//    StakerInfo {
+//        name: "rightful agreement",
+//        staker: "8w5cgUQfXAZZWyVgenPHpQ1uABXUVLnymqXbuZPx7yqt",
+//        lamports: 5_000_000 * LAMPORTS_PER_SOL,
+//        withdrawer: Some("EDwSQShtUWQtmFfN9SpUUd6hgonL7tRdxngAsNKv9Pe6"),
+//    },
+//];
+//
+//pub const COMMUNITY_STAKER_INFOS: &[StakerInfo] = &[
+//    StakerInfo {
+//        name: "shrill charity",
+//        staker: "Eo1iDtrZZiAkQFA8u431hedChaSUnPbU8MWg849MFvEZ",
+//        lamports: 5_000_000 * LAMPORTS_PER_SOL,
+//        withdrawer: Some("8CUUMKYNGxdgYio5CLHRHyzMEhhVRMcqefgE6dLqnVRK"),
+//    },
+//];
 
 fn add_stakes(
     genesis_config: &mut GenesisConfig,
@@ -91,11 +91,13 @@ pub fn add_genesis_accounts(genesis_config: &mut GenesisConfig, mut issued_lampo
     // add_stakes() and add_validators() award tokens for rent exemption and
     //  to cover an initial transfer-free period of the network
 
-    issued_lamports += add_stakes(
-        genesis_config,
-        CREATOR_STAKER_INFOS,
-        &UNLOCKS_HALF_AT_9_MONTHS,
-    ) + add_stakes(
+    issued_lamports +=
+//        add_stakes(
+//        genesis_config,
+//        CREATOR_STAKER_INFOS,
+//        &UNLOCKS_HALF_AT_9_MONTHS,
+//    ) +
+            add_stakes(
         genesis_config,
         SERVICE_STAKER_INFOS,
         &UNLOCKS_ALL_AT_9_MONTHS,
@@ -103,12 +105,13 @@ pub fn add_genesis_accounts(genesis_config: &mut GenesisConfig, mut issued_lampo
         genesis_config,
         FOUNDATION_STAKER_INFOS,
         &UNLOCKS_ALL_DAY_ZERO,
-    ) + add_stakes(genesis_config, GRANTS_STAKER_INFOS, &UNLOCKS_ALL_DAY_ZERO)
-        + add_stakes(
-            genesis_config,
-            COMMUNITY_STAKER_INFOS,
-            &UNLOCKS_ALL_DAY_ZERO,
-        );
+    );
+//    + add_stakes(genesis_config, GRANTS_STAKER_INFOS, &UNLOCKS_ALL_DAY_ZERO)
+//        + add_stakes(
+//            genesis_config,
+//            COMMUNITY_STAKER_INFOS,
+//            &UNLOCKS_ALL_DAY_ZERO,
+//        );
 
 }
 
