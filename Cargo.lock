@@ -2398,6 +2398,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "memmap2"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "057a3db23999c867821a7a59feb06a578fcb03685e983dff90daf9e7d24ac08f"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "memoffset"
 version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4792,7 +4801,7 @@ dependencies = [
  "bv",
  "generic-array 0.14.3",
  "log 0.4.14",
- "memmap2",
+ "memmap2 0.1.0",
  "rustc_version",
  "serde",
  "serde_derive",
@@ -4810,7 +4819,7 @@ dependencies = [
  "bv",
  "generic-array 0.14.3",
  "log 0.4.14",
- "memmap2",
+ "memmap2 0.5.3",
  "rustc_version",
  "serde",
  "serde_derive",
@@ -5470,7 +5479,7 @@ dependencies = [
  "libc",
  "libloading 0.6.2",
  "log 0.4.14",
- "memmap2",
+ "memmap2 0.5.3",
  "num-derive",
  "num-traits",
  "num_cpus",
@@ -5535,7 +5544,7 @@ dependencies = [
  "lazy_static",
  "libsecp256k1",
  "log 0.4.14",
- "memmap2",
+ "memmap2 0.5.3",
  "num-derive",
  "num-traits",
  "pbkdf2 0.6.0",
