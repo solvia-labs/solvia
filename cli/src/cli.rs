@@ -400,6 +400,7 @@ pub enum CliCommand {
     VoteOnGrant {
         grant_hash: Hash,
         vote_type: bool,
+        node_hash: Hash,
         from: SignerIndex,
         sign_only: bool,
         dump_transaction_message: bool,
@@ -1626,6 +1627,7 @@ pub fn process_command(config: &CliConfig) -> ProcessResult {
         CliCommand::VoteOnGrant {
             grant_hash,
             vote_type,
+            node_hash,
             from,
             sign_only,
             dump_transaction_message,
@@ -1640,6 +1642,7 @@ pub fn process_command(config: &CliConfig) -> ProcessResult {
             config,
             *grant_hash,
             *vote_type,
+            *node_hash,
             *from,
             *sign_only,
             *dump_transaction_message,

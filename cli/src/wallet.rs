@@ -366,6 +366,14 @@ impl WalletSubCommands for App<'_, '_> {
                             .help("Vote : yes/no to vote in favour/disfavour "),
                     )
                     .arg(
+                        Arg::with_name("nodehash")
+                            .index(3)
+                            .value_name("NODE_HASH")
+                            .takes_value(true)
+                            .required(true)
+                            .help("NodeHash : NodeHash from which you want to vote"),
+                    )
+                    .arg(
                         pubkey!(Arg::with_name("from")
                         .long("from")
                         .value_name("FROM_ADDRESS"),
@@ -676,6 +684,8 @@ pub fn parse_vote_on_grant(
         "no" => vote_type = false,
         _ => return Err(CliError::BadParameter(vote_type_str.to_string())),
     };
+    let node_hash_str = (matches.value_of("nodehash")).unwrap();
+    let node_hash: Hash = node_hash_str.parse::<Hash>().unwrap();
     let sign_only = matches.is_present(SIGN_ONLY_ARG.name);
     let dump_transaction_message = matches.is_present(DUMP_TRANSACTION_MESSAGE.name);
     let no_wait = matches.is_present("no_wait");
@@ -706,6 +716,7 @@ pub fn parse_vote_on_grant(
         command: CliCommand::VoteOnGrant {
             grant_hash,
             vote_type,
+            node_hash,
             sign_only,
             dump_transaction_message,
             allow_unfunded_recipient,
@@ -1293,6 +1304,7 @@ pub fn process_vote_on_grant(
     config: &CliConfig,
     grant_hash: Hash,
     vote_type: bool,
+    node_hash: Hash,
     from: SignerIndex,
     sign_only: bool,
     dump_transaction_message: bool,
@@ -1337,7 +1349,7 @@ pub fn process_vote_on_grant(
 //    };
 
     let build_message = |_lamports| {
-        let ixs = vec![system_instruction::vote_on_grant(&from_pubkey, grant_hash, vote_type)];
+        let ixs = vec![system_instruction::vote_on_grant(&from_pubkey, grant_hash, vote_type, node_hash)];
 
         if let Some(nonce_account) = &nonce_account {
             Message::new_with_nonce(

@@ -2063,6 +2063,9 @@ impl Bank {
         if !(epoch % 15 == 0 && epoch != 0) {
             return;
         }
+        if epoch == self.epoch() {
+            return;
+        }
         // let mut fnode_data : FNodeData = from_account(&self.get_account(&sysvar::fnode_data::id()).unwrap()).unwrap();
         let fnode_data_orig : FNodeData = from_account::<FNodeData, _>(&self.get_account(&sysvar::fnode_data::id()).unwrap()).unwrap();
         let fnode_data = fnode_data_orig.clone();
@@ -2095,10 +2098,10 @@ impl Bank {
 
                 if grant_vote_weight as f32 > total_weight as f32 * 0.6 // 60% criteria
                 {
-                    //pay grant only when epoch is within range i.e. epoch <=paystartepoch*10
-                    //mark those grants for removal who have votes but epoch > paystartepoch*10
+                    //pay grant only when epoch is within range i.e. epoch <=paystartepoch+10*15
+                    //mark those grants for removal who have votes but epoch > paystartepoch+10*15
                     //pay_grant if valid amount
-                    if epoch <= grant.5 * 15
+                    if epoch < grant.5 + 10 * 15
                     {
                         if total_grants_paid + grant.3 <= sol_to_lamports(MAX_GRANT_PER_MONTH) {
                             if grant.3 <= sol_to_lamports(MAX_AMOUNT_PER_GRANT)
@@ -2128,7 +2131,8 @@ impl Bank {
 
         //processed all grants, remove those not passing criteria or are expired except store dummy grant
         //todo : dont remove all grants
-        for index in grant_indexes_removal.iter()
+        grant_indexes_removal.sort();
+        for index in grant_indexes_removal.iter().rev()
         {
             grant_data.remove(*index);
         }

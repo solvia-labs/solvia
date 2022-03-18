@@ -15,7 +15,7 @@ pub type ReceivingAddress = Pubkey;
 pub type Amount = u64;
 pub type VoteWeight = i32;
 pub type FirstEpoch = u64;
-pub type Votes = Vec<Pubkey>;
+pub type Votes = Vec<Hash>;
 
 // Constants
 // Vote Weight Node Category
@@ -25,7 +25,7 @@ pub const VOTES_FULGUR: i32 = 1;
 pub const MAX_AMOUNT_PER_GRANT: f64 = 20000.0;
 pub const MAX_GRANT_PER_MONTH: f64 =100000.0;
 
-pub const GRANT_AUTH_PUBKEY: &str  = "8WFJt4rKLTnUhUZHFWjviUo6kPQyQLh9hyRZW5C53x5n";
+pub const GRANT_AUTH_PUBKEY: &str  = "7WxNGkKeH3vgxjJq1etLMwRud2TV6H87G3NeokXkdhMU";
 
 pub type GrantData = (GrantHash, ID, ReceivingAddress, Amount, VoteWeight, FirstEpoch, Votes);
 #[repr(C)]
@@ -49,7 +49,7 @@ impl VecGrantData {
     }
 
     pub fn new_frji(&mut self) {
-        let vec_votes = vec![Pubkey::default()];
+        let vec_votes = vec![Hash::new(&[0 as u8; 32])];
         let new_grant : GrantData = (Hash::new(&[0 as u8; 32]), 0, Pubkey::default(), 0 as u64, 0, 0 as u64, vec_votes.clone());
         if (self.0).len()!=0{
         (self.0).clear();}

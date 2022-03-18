@@ -87,10 +87,15 @@ solana_sdk::pubkeys!(
         "5Ryf6H4VeJjPwWMuM42ZoT2JgWr91zFUSRp6Vfqp9sV3",
         "ALv8xLUVJL14Gzf7uAiRM52kHd6KwjTkofMnGk95CmeY",
         "77GPhHvrUaTRuWPcXnnjCuaGLBm81XjpMZTjk5dLias",
-        "14FUT96s9swbmH7ZjpDvfEDywnAYy9zaNhv4xvezySGu",
-        "HbZ5FfmKWNHC7uwk6TF1hVi6TCs7dtYfdjEcuPGgzFAg",
-        "C7C8odR8oashR5Feyrq2tJKaXL18id1dSj2zbkDGL2C2",
-        "Eyr9P5XsjK2NUKNCnfu39eqpGoiLFgVAv1LSQgMZCwiQ",
+        "29gfwU3gMaAUEghNQSApZcR63pTdeUnsNsZfYx4XDKWv",
+        "E7LKp3ya3fxuhA4wWheS1UqX9Rpo1HyDWCcEmFBpfmZE",
+        "GzkgstPGMCj1vEJjYK5szrRv8pk756iESxYU6aU1Qcum",
+        "G6F2NWQPjWiZB3koeomxfk7fUqcWVjBb94SNTxETHMeD",
+        "2XYmkT76tyPQHF9Zw7Vi2t83Cq6jMYUVHUki4gZQ8No2",
+        "66CdyCpf5vy7whr5MuUZ5gUqSHPxcVyCg8QUk16ShAn8",
+        "8AbxY4aCXfkRGzGkhGC3MutRk3qUJM8aMedavM7LtgBt",
+        "6Xo5nyAqGScfrB3rK62gz4fQvuVJfnZ9ehWUbUakFzod",
+        "6VzcvNJGoCFoR2v8j5ynDSs5o3fWiBzvbeNEMyQmqHyr",
     ]
 );
 

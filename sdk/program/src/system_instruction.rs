@@ -341,6 +341,9 @@ pub enum SystemInstruction {
 
         /// Vote, 0-No, 1- Yes
         vote: bool,
+
+        /// Hash of the grant
+        node_hash: Hash,
     },
     /// Dissolve a Grant
     ///
@@ -466,7 +469,7 @@ pub fn add_grant(from_pubkey: &Pubkey, id: i16, receiving_address: &Pubkey, amou
     )
 }
 
-pub fn vote_on_grant(from_pubkey: &Pubkey, grant_hash: Hash, vote : bool) -> Instruction {
+pub fn vote_on_grant(from_pubkey: &Pubkey, grant_hash: Hash, vote : bool, node_hash : Hash) -> Instruction {
     let account_metas = vec![
         AccountMeta::new(*from_pubkey, true),
         AccountMeta::new(*&grant_data::id(), false),
@@ -474,7 +477,7 @@ pub fn vote_on_grant(from_pubkey: &Pubkey, grant_hash: Hash, vote : bool) -> Ins
 
     Instruction::new_with_bincode(
         system_program::id(),
-        &SystemInstruction::VoteOnGrant { grant_hash, vote },
+        &SystemInstruction::VoteOnGrant { grant_hash, vote, node_hash },
         account_metas,
     )
 }

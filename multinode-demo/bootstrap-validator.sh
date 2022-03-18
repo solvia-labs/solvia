@@ -124,9 +124,12 @@ args+=(
   --no-wait-for-vote-to-start-leader
   --enable-bigtable-ledger-upload
   --enable-rpc-transaction-history
+  --enable-rpc-bigtable-ledger-storage
+  --account-index
+  --accounts /mnt/solvia-accounts
 )
 default_arg --gossip-port 8001
-default_arg --log -
+default_arg --log ~/solvia-bootstrap-validator.log
 
 
 pid=

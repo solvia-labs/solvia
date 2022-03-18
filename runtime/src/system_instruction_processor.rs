@@ -248,12 +248,22 @@ fn createfnode(
         );
         return Err(InstructionError::MissingRequiredSignature);
     }
-    // todo: check return value of burn_verified
-    // todo: populate sysvarNodeData after burn_verified with node info
+    //
+    // todo: populate sysvarNodeData with node info
+    // todo: calc node hash as Hash(node_params+Random_Pubkey)
     // burn_verified(from, lamports, invoke_context);
     if Ok(()) == transfer_verified(from, fnode_account, lamports, invoke_context)
     {
-        let new_fnode: NodeData = (reward_address.clone(), node_type, 0 as u64, false);
+        let mut vec_bytes: Vec<u8> = Vec::new();
+        let reward_address_bytes = serialize(&reward_address).unwrap();
+        let node_type_bytes = serialize(&node_type).unwrap();
+        let rand_pubkey = Pubkey::new_unique();
+        vec_bytes.extend(reward_address_bytes);
+        vec_bytes.extend(node_type_bytes);
+        vec_bytes.extend(rand_pubkey.to_bytes());
+        let node_hash = hash(&vec_bytes);
+
+        let new_fnode: NodeData = (reward_address.clone(), node_type, 0 as u64, false, node_hash);
 
 // Read Sysvar data
         let mut fnode_data: FNodeData = Some(get_sysvar::<FNodeData>(invoke_context, &sysvar::fnode_data::id())?).unwrap();
@@ -336,7 +346,7 @@ fn add_grant(
     vec_bytes.extend(amount_bytes);
     let grant_hash = hash(&vec_bytes);
 
-    let vec_votes = vec![Pubkey::default()];
+    let vec_votes = vec![Hash::new(&[0 as u8; 32])];
 
     //calculate first_pay_epoch
     let first_pay_epoch : u64;
@@ -347,9 +357,15 @@ fn add_grant(
 // Read Sysvar data
     let mut grant_data: VecGrantData = Some(get_sysvar::<VecGrantData>(invoke_context, &sysvar::grant_data::id())?).unwrap();
     let mut grant_data_vec = grant_data.clone(); // clone
-    match grant_data_vec.binary_search_by(|(hash, _, _, _, _, _, _)| grant_hash.cmp(hash)) {
-        Ok(_) => return Err(InstructionError::InvalidInstructionData),
-        Err(_) => grant_data.add(new_grant),
+//    match grant_data_vec.binary_search_by(|(hash, _, _, _, _, _, _)| grant_hash.cmp(hash)) {
+//        Ok(_) => return Err(InstructionError::InvalidInstructionData),
+//        Err(_) => grant_data.add(new_grant),
+//    }
+//    grant_data_vec.iter().position(|&hash| grant_hash.cmp(hash));
+    if let Some(index) = grant_data_vec.iter().find(|&hash| grant_hash == hash.0) {
+        return Err(InstructionError::InvalidInstructionData)
+    } else {
+        grant_data.add(new_grant)
     }
     grant_data_vec = grant_data.clone();
 // serialize data
@@ -405,9 +421,14 @@ fn dissolve_grant(
     let mut grant_data: VecGrantData = Some(get_sysvar::<VecGrantData>(invoke_context, &sysvar::grant_data::id())?).unwrap();
     let mut grant_data_vec = grant_data.clone(); // clone to get vector
     let grant_index;
-    match grant_data_vec.binary_search_by(|(hash, _, _, _, _, _, _)| grant_hash.cmp(hash)) {
-        Ok(index) => {grant_index = index},
-        Err(_) => return Err(InstructionError::InvalidInstructionData),
+//    match grant_data_vec.binary_search_by(|(hash, _, _, _, _, _, _)| grant_hash.cmp(hash)) {
+//        Ok(index) => {grant_index = index},
+//        Err(_) => return Err(InstructionError::InvalidInstructionData),
+//    }
+    if let Some(index) = grant_data_vec.iter().position(|hash| grant_hash == hash.0) {
+        grant_index = index;
+    } else {
+        return Err(InstructionError::InvalidInstructionData);
     }
 
     // found grant_index, now delete that particular grant
@@ -442,6 +463,7 @@ fn vote_on_grant(
     grant_account: &KeyedAccount,
     grant_hash: Hash,
     vote: bool,
+    node_hash: Hash,
     invoke_context: &dyn InvokeContext,
 ) -> Result<(), InstructionError> {
     // checks to make sure data is written to GrantData
@@ -464,53 +486,136 @@ fn vote_on_grant(
     }
 
 
-    //Find which node is trying to vote return Err if Node is not present
+
+    //Check the node that is trying to vote is present or not,
+    // if present check signer is same as reward_address and take nodetype
+    // return error if not
     let fnode_data: FNodeData = Some(get_sysvar::<FNodeData>(invoke_context, &sysvar::fnode_data::id())?).unwrap();
     let fnode_data_vec = fnode_data.clone(); // clone to get vector
-    let mut node_count = 0;
-    let mut vote_count_of_node = 0;
-    let mut vec_votes :  Vec<Pubkey>;
-    let mut vec_node_types_same_pubkey : Vec<i8> = Vec::new();
+    let mut fnode_type : i8 = 7;
+//    for (index, fnode) in fnode_data_vec.iter().enumerate()
+//    {   // take only active nodes
+//        if fnode.3 == true {
+//            if fnode.4 == node_hash {
+//                //present, todo : take node_type & check reward_address now for future
+//                if from.unsigned_key().clone() != fnode.0 {
+//                    print!("NodeHash !!{}", node_hash);
+//                    return Err(InstructionError::InvalidInstructionData);
+//                }
+//                else {
+//                    fnode_type = fnode.1;
+//                }
+//            }
+//            else {print!("NodeHash {}", fnode.4);
+//                return Err(InstructionError::InvalidInstructionData);}
+//        }
+//    }
 
-    for fnode in fnode_data_vec.iter()
-    {
-        //if fnode.3 == true { //count only active nodes
-            if fnode.0 == from.unsigned_key().clone() {
-                node_count += 1;
-                vec_node_types_same_pubkey.push(fnode.1);
-            }
-        //}
+    if let Some(index) = fnode_data_vec.iter().position(|fnode| node_hash == fnode.4) {
+        //present
+        if fnode_data_vec[index].3 == true {
+            fnode_type = fnode_data_vec[index].1;
+        }
+        else {
+            return Err(InstructionError::InvalidInstructionData);
+        }
+    } else {
+        return Err(InstructionError::InvalidInstructionData);
     }
-    // todo: remove zero pubkey from vec_votes when first vote comes
-    vec_node_types_same_pubkey.sort();
-    if node_count==0 { return Err(InstructionError::InvalidInstructionData); }
+
+    // Check if Grant is present or not by grant_hash
     let mut grant_data: VecGrantData = Some(get_sysvar::<VecGrantData>(invoke_context, &sysvar::grant_data::id())?).unwrap();
     let mut grant_data_vec = grant_data.clone(); // clone to get vector
     let mut grant_index;
-    match grant_data_vec.binary_search_by(|(hash, _, _, _, _, _, _)| grant_hash.cmp(hash)) {
-        Ok(index) => {vec_votes = grant_data_vec[index].6.clone(); grant_index = index},
-        Err(_) => return Err(InstructionError::InvalidInstructionData),
+    let mut vec_votes :  Vec<Hash>;
+    if let Some(index) = grant_data_vec.iter().position(|grant| grant_hash == grant.0) {
+        //present
+        vec_votes = grant_data_vec[index].6.clone();
+        grant_index = index;
+    } else {
+        return Err(InstructionError::InvalidInstructionData);
     }
 
-    for vote_pubkey in vec_votes.iter(){
-        if vote_pubkey == from.unsigned_key() {vote_count_of_node += 1}
-    }
-
-    if node_count > vote_count_of_node {
-        // insert frompubkey to Votes and update Vote_Weight according to node_type
-        //state update
-        vec_votes.push(*from.unsigned_key()); //insert to votes
-        if grant_index!=0 {
-            grant_data_vec[grant_index].4 += {
-                match vec_node_types_same_pubkey[vote_count_of_node] {
-                    0 => if vote==true {13} else{-13},
-                    1 => if vote==true {3} else{-3},
-                    2 => if vote==true {1} else{-1},
-                    _ =>  0,
-                }
-            };//vote_weight
-            grant_data_vec[grant_index].6 = vec_votes;//change pushed votes
+    // Check if node has already voted by checking node_hash against vec_votes
+    for voted_node_hash in vec_votes.iter(){
+        if *voted_node_hash == node_hash {
+            //already voted, error
+            return Err(InstructionError::InvalidInstructionData);
         }
+    }
+
+    // all checks passed, cast the vote now
+    if grant_index!=0 {
+        vec_votes.push(node_hash); //insert to votes
+        //vote_weight
+        grant_data_vec[grant_index].4 += {
+            match fnode_type {
+                0 => if vote==true {13} else{-13},
+                1 => if vote==true {3} else{-3},
+                2 => if vote==true {1} else{-1},
+                _ =>  0,
+            }
+        };
+        grant_data_vec[grant_index].6 = vec_votes;//change pushed votes
+    }
+
+
+
+/*    let mut node_count = 0;
+//    let mut vote_count_of_node = 0;
+//    let mut vec_votes :  Vec<Hash>;
+//    let mut vec_node_types_same_pubkey : Vec<i8> = Vec::new();
+//
+//    for fnode in fnode_data_vec.iter()
+//    {   // : count only active nodes
+//        if fnode.3 == true {
+//            if fnode.0 == from.unsigned_key().clone() {
+//                node_count += 1;
+//                vec_node_types_same_pubkey.push(fnode.1);
+//            }
+//        }
+//    }
+//    // : remove zero pubkey from vec_votes when first vote comes
+//    vec_node_types_same_pubkey.sort();
+//    if node_count==0 { return Err(InstructionError::InvalidInstructionData); }
+//    let mut grant_data: VecGrantData = Some(get_sysvar::<VecGrantData>(invoke_context, &sysvar::grant_data::id())?).unwrap();
+//    let mut grant_data_vec = grant_data.clone(); // clone to get vector
+//    let mut grant_index;
+////    match grant_data_vec.binary_search_by(|(hash, _, _, _, _, _, _)| grant_hash.cmp(hash)) {
+////        Ok(index) => {vec_votes = grant_data_vec[index].6.clone(); grant_index = index;},
+////        Err(_) => return Err(InstructionError::InvalidInstructionData),
+////    }
+//
+//    if let Some(index) = grant_data_vec.iter().position(|hash| grant_hash == hash.0) {
+//        vec_votes = grant_data_vec[index].6.clone();
+//        grant_index = index;
+//    } else {
+//        return Err(InstructionError::InvalidInstructionData);
+//    }
+//
+//
+//    for vote_pubkey in vec_votes.iter(){
+//        if vote_pubkey == from.unsigned_key() {vote_count_of_node += 1}
+//    }
+
+//    if node_count > vote_count_of_node {
+//        // insert frompubkey to Votes and update Vote_Weight according to node_type
+//        //state update
+//        vec_votes.push(); //insert to votes
+//        if grant_index!=0 {
+//            grant_data_vec[grant_index].4 += {
+//                match vec_node_types_same_pubkey[vote_count_of_node] {
+//                    0 => if vote==true {13} else{-13},
+//                    1 => if vote==true {3} else{-3},
+//                    2 => if vote==true {1} else{-1},
+//                    _ =>  0,
+//                }
+//            };//vote_weight
+//            grant_data_vec[grant_index].6 = vec_votes;//change pushed votes
+//        }
+    */
+    if grant_index != 0
+    {
 // serialize data
         let mut data: Vec<u8> = Vec::with_capacity(grant_data_vec.len());
         grant_data.replace_with(grant_data_vec);
@@ -779,10 +884,11 @@ pub fn process_instruction(
         }
         SystemInstruction::VoteOnGrant { grant_hash,
             vote,
+            node_hash,
         } => {
             let from = keyed_account_at_index(keyed_accounts, 0)?;
             let grant_account = keyed_account_at_index(keyed_accounts, 1)?;
-            vote_on_grant(from, &grant_account, grant_hash, vote, invoke_context)
+            vote_on_grant(from, &grant_account, grant_hash, vote, node_hash, invoke_context)
         }
         SystemInstruction::DissolveGrant { grant_hash
         } => {

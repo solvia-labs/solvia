@@ -11,8 +11,8 @@ mkdir -p "$SOLANA_CONFIG_DIR"/latest-mainnet-beta-snapshot
 (
   cd "$SOLANA_CONFIG_DIR"/latest-mainnet-beta-snapshot || exit 1
   set -x
-  wget http://api.mainnet-beta.solana.com/genesis.tar.bz2
-  wget --trust-server-names http://api.mainnet-beta.solana.com/snapshot.tar.bz2
+  wget http://api.mainnet-beta.solvia.io/genesis.tar.bz2
+  wget --trust-server-names http://api.mainnet-beta.solvia.io/snapshot.tar.bz2
 )
 
 snapshot=$(ls "$SOLANA_CONFIG_DIR"/latest-mainnet-beta-snapshot/snapshot-[0-9]*-*.tar.zst)
@@ -51,7 +51,7 @@ $solana_keygen new --no-passphrase -so "$SOLANA_CONFIG_DIR"/bootstrap-validator/
 $solana_ledger_tool create-snapshot \
   --ledger "$SOLANA_CONFIG_DIR"/latest-mainnet-beta-snapshot \
   --faucet-pubkey "$SOLANA_CONFIG_DIR"/faucet.json \
-  --faucet-lamports 500000000000000000 \
+  --faucet-lamports 5000000000 \
   --bootstrap-validator "$SOLANA_CONFIG_DIR"/bootstrap-validator/identity.json \
                         "$SOLANA_CONFIG_DIR"/bootstrap-validator/vote-account.json \
                         "$SOLANA_CONFIG_DIR"/bootstrap-validator/stake-account.json \

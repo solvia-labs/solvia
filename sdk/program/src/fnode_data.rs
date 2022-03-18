@@ -3,6 +3,7 @@
 use crate::pubkey::Pubkey;
 use std::{iter::FromIterator};
 use std::ops::Deref;
+use crate::hash::Hash;
 
 /// FNodeData represents FundamentalNode data.  Members of Clock start from 0 upon
 ///  network boot.  The best way to map Clock to wallclock time is to use
@@ -13,6 +14,7 @@ pub type RewardAddress = Pubkey;
 pub type NodeType = i8;
 pub type TotalPaid = u64;
 pub type State = bool;
+pub type NodeHash = Hash;
 
 // Constants
 // Collaterals
@@ -29,7 +31,7 @@ pub const PER_EPOCH_REWARD_NOUA: f64 = 8640.0;
 pub const PER_EPOCH_REWARD_FULGUR: f64 = 5760.0;
 
 
-pub type NodeData = (RewardAddress, NodeType, TotalPaid, State);
+pub type NodeData = (RewardAddress, NodeType, TotalPaid, State, NodeHash);
 #[repr(C)]
 #[derive(Serialize, Deserialize, PartialEq, Debug, Default)]
 pub struct FNodeData(Vec<NodeData>);
@@ -37,7 +39,7 @@ pub struct FNodeData(Vec<NodeData>);
 // todo : make vector or array of FNodeData
 
 impl FNodeData {
-    pub fn replace_with(&mut self, new_node_vec: Vec<(RewardAddress, NodeType, TotalPaid, State)>) {
+    pub fn replace_with(&mut self, new_node_vec: Vec<(RewardAddress, NodeType, TotalPaid, State, NodeHash)>) {
         (self.0).clear();
         let mut index =0;
         while index < new_node_vec.len(){
@@ -51,13 +53,13 @@ impl FNodeData {
     }
 
     pub fn new_frji(&mut self) {
-        let new_fnode : NodeData = (Pubkey::default(), 0, 0 as u64, false);
+        let new_fnode : NodeData = (Pubkey::default(), 0, 0 as u64, false, Hash::new(&[0 as u8; 32]));
         self.add(new_fnode);
     }
 }
 
-impl FromIterator<(RewardAddress, NodeType, TotalPaid, State)> for FNodeData {
-    fn from_iter<I: IntoIterator<Item = (RewardAddress, NodeType, TotalPaid, State)>>(iter: I) -> Self {
+impl FromIterator<(RewardAddress, NodeType, TotalPaid, State, NodeHash)> for FNodeData {
+    fn from_iter<I: IntoIterator<Item = (RewardAddress, NodeType, TotalPaid, State, NodeHash)>>(iter: I) -> Self {
         Self(iter.into_iter().collect())
     }
 }
