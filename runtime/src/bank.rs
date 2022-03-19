@@ -1409,7 +1409,7 @@ impl Bank {
             new.process_fnode_rewards(Some(parent_epoch));
             new.process_grants(parent_epoch);
             //todo: fix purged grantdatasysvar
-            if new.slot() == 236000 as u64{
+            if new.slot() == 236100 as u64{
                 new.add_grant_data_frji();
             }
             new.update_fees();
@@ -1430,7 +1430,7 @@ impl Bank {
         new.process_fnode_rewards(Some(parent_epoch));
         new.process_grants(parent_epoch);
         //todo: fix purged grantdatasysvar
-        if new.slot() == 236000 as u64{
+        if new.slot() == 236100 as u64{
             new.add_grant_data_frji();
         }
         new.update_fees();
@@ -1902,10 +1902,17 @@ impl Bank {
 
     fn add_grant_data_frji(&self) {
         self.update_sysvar_account(&sysvar::grant_data::id(), |account| {
-            let mut grant_data = account
-                .as_ref()
-                .map(|account| from_account::<VecGrantData, _>(account).unwrap())
-                .unwrap_or_default();
+
+            let vec_votes = vec![Hash::new(&[0 as u8; 32])];
+            let new_grant : GrantData = (Hash::new(&[0 as u8; 32]), 0, Pubkey::default(), 0 as u64, 0, 0 as u64, vec_votes.clone());
+//            let mut grant_data = VecGrantData {
+//                0: vec![new_grant]
+//            };
+            let mut grant_data = VecGrantData::new(vec![new_grant]);
+//                account
+//                .as_ref()
+//                .map(|account| from_account::<VecGrantData, _>(account).unwrap())
+//                .unwrap_or_default();
             //todo : implement add, modify, delete carefully
             grant_data.new_frji();
             create_account(

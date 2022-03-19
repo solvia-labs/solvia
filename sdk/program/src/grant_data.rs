@@ -35,6 +35,9 @@ pub struct VecGrantData(Vec<GrantData>);
 // todo : make vector or array of FNodeData
 
 impl VecGrantData {
+    pub fn new(new : Vec<GrantData>) -> VecGrantData {
+        VecGrantData(new)
+    }
     pub fn replace_with(&mut self, new_grant_data_vec: Vec<(GrantHash, ID, ReceivingAddress, Amount, VoteWeight, FirstEpoch, Votes)>) {
         (self.0).clear();
         let mut index =0;
