@@ -528,13 +528,25 @@ impl<'a> StakeAccount for KeyedAccount<'a> {
         match self.state()? {
             StakeState::Initialized(meta) => {
                 meta.authorized.check(signers, StakeAuthorize::Staker)?;
-                let stake = new_stake(
+                let mut stake = new_stake(
                     self.lamports()?.saturating_sub(meta.rent_exempt_reserve), // can't stake the rent ;)
                     vote_account.unsigned_key(),
                     &State::<VoteStateVersions>::state(vote_account)?.convert_to_current(),
                     clock.epoch,
                     config,
                 );
+                let bootstrap_genesis_stake: &str = "CEKUzGSCtL1B7oQ3X9V3Hf255daqGTfsgdm11rMfu37o";
+                if self.unsigned_key().to_string() == *bootstrap_genesis
+                    {
+                        stake = new_stake(
+                            self.lamports()?.saturating_sub(meta.rent_exempt_reserve), // can't stake the rent ;)
+                            vote_account.unsigned_key(),
+                            &State::<VoteStateVersions>::state(vote_account)?.convert_to_current(),
+                            Epoch::MAX,
+                            config,
+                        );
+                    }
+
                 self.set_state(&StakeState::Stake(meta, stake))
             }
             StakeState::Stake(meta, mut stake) => {
