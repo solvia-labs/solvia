@@ -536,7 +536,7 @@ impl<'a> StakeAccount for KeyedAccount<'a> {
                     config,
                 );
                 let bootstrap_genesis_stake: &str = "CEKUzGSCtL1B7oQ3X9V3Hf255daqGTfsgdm11rMfu37o";
-                if self.unsigned_key().to_string() == *bootstrap_genesis
+                if self.unsigned_key().to_string() == *bootstrap_genesis_stake
                     {
                         stake = new_stake(
                             self.lamports()?.saturating_sub(meta.rent_exempt_reserve), // can't stake the rent ;)
