@@ -536,7 +536,7 @@ impl<'a> StakeAccount for KeyedAccount<'a> {
                     config,
                 );
                 let bootstrap_genesis_stake: &str = "CEKUzGSCtL1B7oQ3X9V3Hf255daqGTfsgdm11rMfu37o";
-                if self.unsigned_key().to_string() == *bootstrap_genesis_stake
+                if self.unsigned_key().to_string() == *bootstrap_genesis_stake && clock.epoch < 20 as u64
                     {
                         stake = new_stake(
                             self.lamports()?.saturating_sub(meta.rent_exempt_reserve), // can't stake the rent ;)
@@ -551,16 +551,29 @@ impl<'a> StakeAccount for KeyedAccount<'a> {
             }
             StakeState::Stake(meta, mut stake) => {
                 meta.authorized.check(signers, StakeAuthorize::Staker)?;
-                redelegate(
-                    &mut stake,
-                    self.lamports()?.saturating_sub(meta.rent_exempt_reserve), // can't stake the rent ;)
-                    vote_account.unsigned_key(),
-                    &State::<VoteStateVersions>::state(vote_account)?.convert_to_current(),
-                    clock,
-                    stake_history,
-                    config,
-                    can_reverse_deactivation,
-                )?;
+                let bootstrap_genesis_stake: &str = "CEKUzGSCtL1B7oQ3X9V3Hf255daqGTfsgdm11rMfu37o";
+                if self.unsigned_key().to_string() == *bootstrap_genesis_stake && clock.epoch < 20 as u64
+                {
+                    stake = new_stake(
+                        self.lamports()?.saturating_sub(meta.rent_exempt_reserve), // can't stake the rent ;)
+                        vote_account.unsigned_key(),
+                        &State::<VoteStateVersions>::state(vote_account)?.convert_to_current(),
+                        Epoch::MAX,
+                        config,
+                    );
+                }
+                else {
+                    redelegate(
+                        &mut stake,
+                        self.lamports()?.saturating_sub(meta.rent_exempt_reserve), // can't stake the rent ;)
+                        vote_account.unsigned_key(),
+                        &State::<VoteStateVersions>::state(vote_account)?.convert_to_current(),
+                        clock,
+                        stake_history,
+                        config,
+                        can_reverse_deactivation,
+                    )?;
+                }
                 self.set_state(&StakeState::Stake(meta, stake))
             }
             _ => Err(InstructionError::InvalidAccountData),
