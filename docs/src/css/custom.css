@@ -10,13 +10,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto');
 
 :root {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #409088;
-  --ifm-color-primary-darker: #387462;
-  --ifm-color-primary-darkest: #1b4e3f;
-  --ifm-color-primary-light: #42ba96;
-  --ifm-color-primary-lighter: #86b8b6;
-  --ifm-color-primary-lightest: #abd5c6;
+  --ifm-color-primary: #f8bd3d;
+  --ifm-color-primary-dark: #e19c08;
+  --ifm-color-primary-darker: #ca8c07;
+  --ifm-color-primary-darkest: #9d6d05;
+  --ifm-color-primary-light: #e7af39;
+  --ifm-color-primary-lighter: #eab952;
+  --ifm-color-primary-lightest: #f0cd83;
   --ifm-code-font-size: 95%;
   --ifm-spacing-horizontal: 1em;
   --ifm-font-family-base: "Roboto", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
@@ -69,5 +69,5 @@ footer .text--center {
 }
 
 .card__header h3 {
-  color: #1DD79B;
+  color: #e4a520;
 }

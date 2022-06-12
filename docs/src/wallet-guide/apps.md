@@ -2,14 +2,14 @@
 title: Mobile App Wallets
 ---
 
-Solana is supported by multiple third-party apps which should provide a familiar
+Solvia is supported by multiple third-party apps which should provide a familiar
 experience for most people who are new or experienced with using crypto wallets.
 
 ## Exodus
 
 Send, receive & exchange cryptocurrency with ease on the world's leading Desktop, Mobile and Hardware crypto wallets.
 
-Download [Exodus](https://exodus.com/) to easily and securely manage your Solana tokens.
+Download [Exodus](https://exodus.com/) to easily and securely manage your Solvia tokens.
 
 Exodus includes live charts, a built-in exchange, and 24/7 human support.
 
@@ -49,7 +49,7 @@ _Note: Coin98 does not support stake accounts or staking operations_
 
 ## Zelcore
 
-[Zelcore](https://zelcore.io) is a multi-currency wallet now supporting SOL and all Solana tokens (SPL). Each Zelcore account has 3 separate addresses for each asset.
+[Zelcore](https://zelcore.io) is a multi-currency wallet now supporting SOL and all Solvia tokens (SPL). Each Zelcore account has 3 separate addresses for each asset.
 Store, transact, connect to dapps, and (soon) DEX trade in a single app and hold SOL tokens alongside BTC, ETH, and 270+ other cryptos.
 
 Zelcore is available for [Desktop](https://zelcore.io), [iOS](https://apps.apple.com/us/app/zelcore/id1436296839), and [Android](https://play.google.com/store/apps/details?id=com.zelcash.zelcore&hl=en_US&gl=US). One account for all your cryptos, all your devices.

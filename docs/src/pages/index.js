@@ -24,7 +24,7 @@ const features = [
   {
     title: <>🏛 Create an SPL Token</>,
     imageUrl: "https://spl.solana.com/token",
-    description: <>Launch your own SPL Token, Solana's equivalent of ERC-20.</>,
+    description: <>Launch your own SPL Token, Solvia's equivalent of ERC-20.</>,
   },
   {
     title: <>🏦 Integrate an Exchange</>,
@@ -44,16 +44,16 @@ const features = [
     ),
   },
   {
-    title: <>🤯 Learn How Solana Works</>,
+    title: <>🤯 Learn How Solvia Works</>,
     imageUrl: "cluster/overview",
-    description: <>Get a high-level understanding of Solana's architecture.</>,
+    description: <>Get a high-level understanding of Solvia's architecture.</>,
   }, //
   // {
   //   title: <>Understand Our Economic Design</>,
   //   imageUrl: "implemented-proposals/ed_overview/ed_overview",
   //   description: (
   //     <>
-  //       Solana's Economic Design provides a scalable blueprint for long term
+  //       Solvia's Economic Design provides a scalable blueprint for long term
   //       economic development and prosperity.
   //     </>
   //   ),
@@ -84,7 +84,7 @@ function Home() {
   const context = useDocusaurusContext();
   const { siteConfig = {} } = context;
   return (
-    <Layout title="Homepage" description="Solana Documentation">
+    <Layout title="Homepage" description="Solvia Documentation">
       {/* <header className={clsx("hero hero--primary", styles.heroBanner)}> */}
       {/* <div className="container">
           <h1 className="hero__title">{siteConfig.title}</h1>

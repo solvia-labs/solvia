@@ -4,7 +4,7 @@ title: Cluster Software Installation and Updates
 
 Currently users are required to build the solana cluster software themselves from the git repository and manually update it, which is error prone and inconvenient.
 
-This document proposes an easy to use software install and updater that can be used to deploy pre-built binaries for supported platforms. Users may elect to use binaries supplied by Solana or any other party provider. Deployment of updates is managed using an on-chain update manifest program.
+This document proposes an easy to use software install and updater that can be used to deploy pre-built binaries for supported platforms. Users may elect to use binaries supplied by Solvia or any other party provider. Deployment of updates is managed using an on-chain update manifest program.
 
 ## Motivating Examples
 
@@ -13,7 +13,7 @@ This document proposes an easy to use software install and updater that can be u
 The easiest install method for supported platforms:
 
 ```bash
-$ curl -sSf https://raw.githubusercontent.com/solana-labs/solana/v1.0.0/install/solana-install-init.sh | sh
+$ curl -sSf https://raw.githubusercontent.com/solvia-labs/solvia/v1.0.0/install/solana-install-init.sh | sh
 ```
 
 This script will check github for the latest tagged release and download and run the `solana-install-init` binary from there.
@@ -22,7 +22,7 @@ If additional arguments need to be specified during the installation, the follow
 
 ```bash
 $ init_args=.... # arguments for `solana-install-init ...`
-$ curl -sSf https://raw.githubusercontent.com/solana-labs/solana/v1.0.0/install/solana-install-init.sh | sh -s - ${init_args}
+$ curl -sSf https://raw.githubusercontent.com/solvia-labs/solvia/v1.0.0/install/solana-install-init.sh | sh -s - ${init_args}
 ```
 
 ### Fetch and run a pre-built installer from a Github release
@@ -30,7 +30,7 @@ $ curl -sSf https://raw.githubusercontent.com/solana-labs/solana/v1.0.0/install/
 With a well-known release URL, a pre-built binary can be obtained for supported platforms:
 
 ```bash
-$ curl -o solana-install-init https://github.com/solana-labs/solana/releases/download/v1.0.0/solana-install-init-x86_64-apple-darwin
+$ curl -o solana-install-init https://github.com/solvia-labs/solvia/releases/download/v1.0.0/solana-install-init-x86_64-apple-darwin
 $ chmod +x ./solana-install-init
 $ ./solana-install-init --help
 ```
@@ -40,7 +40,7 @@ $ ./solana-install-init --help
 If a pre-built binary is not available for a given platform, building the installer from source is always an option:
 
 ```bash
-$ git clone https://github.com/solana-labs/solana.git
+$ git clone https://github.com/solvia-labs/solvia.git
 $ cd solana/install
 $ cargo run -- --help
 ```

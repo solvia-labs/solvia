@@ -6,9 +6,9 @@ The following terms are used throughout the documentation.
 
 ## account
 
-A record in the Solana ledger that either holds data or is an executable program.
+A record in the Solvia ledger that either holds data or is an executable program.
 
-Like an account at a traditional bank, a Solana account may hold funds called [lamports](#lamport). Like a file in Linux, it is addressable by a key, often referred to as a [public key](#public-key-pubkey) or pubkey.
+Like an account at a traditional bank, a Solvia account may hold funds called [lamports](#lamport). Like a file in Linux, it is addressable by a key, often referred to as a [public key](#public-key-pubkey) or pubkey.
 
 The key may be one of:
 
@@ -22,7 +22,7 @@ The address of the program that owns the account. Only the owning program is cap
 
 ## app
 
-A front-end application that interacts with a Solana cluster.
+A front-end application that interacts with a Solvia cluster.
 
 ## bank state
 
@@ -34,7 +34,7 @@ A contiguous set of [entries](#entry) on the ledger covered by a [vote](#ledger-
 
 ## blockhash
 
-A unique value ([hash](#hash)) that identifies a record (block).  Solana computes a blockhash from the last [entry id](#entry-id) of the block.
+A unique value ([hash](#hash)) that identifies a record (block).  Solvia computes a blockhash from the last [entry id](#entry-id) of the block.
 
 ## block height
 
@@ -46,11 +46,11 @@ The [validator](#validator) that produces the genesis (first) [block](#block) of
 
 ## BPF loader
 
-The Solana program that owns and loads [BPF](developing/on-chain-programs/overview#berkeley-packet-filter-bpf) smart contract programs, allowing the program to interface with the runtime.
+The Solvia program that owns and loads [BPF](developing/on-chain-programs/overview#berkeley-packet-filter-bpf) smart contract programs, allowing the program to interface with the runtime.
 
 ## client
 
-A computer program that accesses the Solana server network [cluster](#cluster).
+A computer program that accesses the Solvia server network [cluster](#cluster).
 
 ## cluster
 
@@ -132,7 +132,7 @@ A digital fingerprint of a sequence of bytes.
 
 ## inflation
 
-An increase in token supply over time used to fund rewards for validation and to fund continued development of Solana.
+An increase in token supply over time used to fund rewards for validation and to fund continued development of Solvia.
 
 ## inner instruction
 
@@ -233,7 +233,7 @@ The component of a [validator](#validator) responsible for [program](#program) e
 
 ## Sealevel
 
-Solana's parallel smart contracts run-time.
+Solvia's parallel smart contracts run-time.
 
 ## shred
 
@@ -263,11 +263,11 @@ A program on a blockchain that can read and modify accounts over which it has co
 
 ## sol
 
-The [native token](#native-token) of a Solana [cluster](#cluster).
+The [native token](#native-token) of a Solvia [cluster](#cluster).
 
-## Solana Program Library (SPL)
+## Solvia Program Library (SPL)
 
-A library of programs on Solana such as spl-token that facilitates tasks such as creating and using tokens
+A library of programs on Solvia such as spl-token that facilitates tasks such as creating and using tokens
 
 ## stake
 
@@ -319,7 +319,7 @@ A set of [transactions](#transaction) that may be executed in parallel.
 
 ## validator
 
-A full participant in a Solana network [cluster](#cluster) that produces new [blocks](#block).  A validator validates the transactions added to the [ledger](#ledger)
+A full participant in a Solvia network [cluster](#cluster) that produces new [blocks](#block).  A validator validates the transactions added to the [ledger](#ledger)
 
 ## VDF
 

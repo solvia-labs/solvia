@@ -2,7 +2,7 @@
 title: CLI 使用参考
 ---
 
-[solana-cli crate](https://crates.io/crates/solana-cli) 为 Solana 提供了一个命令行界面工具
+[solana-cli crate](https://crates.io/crates/solana-cli) 为 Solvia 提供了一个命令行界面工具
 
 ## 示例：
 

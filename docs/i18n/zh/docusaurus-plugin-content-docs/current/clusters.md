@@ -1,10 +1,10 @@
 ---
-title: Solana 集群
+title: Solvia 集群
 ---
 
-Solana维护着几个不同用途的集群。
+Solvia维护着几个不同用途的集群。
 
-在开始之前，请确保已首先安装了[Solana命令行工具](cli/install-solana-cli-tools.md)
+在开始之前，请确保已首先安装了[Solvia命令行工具](cli/install-solvia-cli-tools.md)
 
 浏览器：
 
@@ -13,7 +13,7 @@ Solana维护着几个不同用途的集群。
 
 ## Devnet（开发者网络）
 
-- Devnet可以作为希望将Solana进行测试的任何人，用户，代币持有者，应用开发者或验证者的游乐场。
+- Devnet可以作为希望将Solvia进行测试的任何人，用户，代币持有者，应用开发者或验证者的游乐场。
 - 应用程序开发人员应针对Devnet。
 - 潜在的验证者应首先针对Devnet。
 - Devnet和Mainnet Beta之间的主要区别：
@@ -51,7 +51,7 @@ $ solana-validator \
     --limit-ledger-size
 ```
 
-`--trusted-validator`由 Solana 运行
+`--trusted-validator`由 Solvia 运行
 
 ## Testnet（测试网）
 
@@ -95,8 +95,8 @@ $ solana-validator \
 
 `--trusted-validator` 的身份是：
 
-- `5D1fNXzv5NjV1ysLjirC4WY92RNsVH18vjmcszZd8on` - testnet.solana.com (Solana)
-- `ta1Uvfb7W5BRPrdGnhP9RmeCKzBySGM1hTE4rBRy6T` - Break RPC 节点 (Solana)
+- `5D1fNXzv5NjV1ysLjirC4WY92RNsVH18vjmcszZd8on` - testnet.solana.com (Solvia)
+- `ta1Uvfb7W5BRPrdGnhP9RmeCKzBySGM1hTE4rBRy6T` - Break RPC 节点 (Solvia)
 - `Ft5fbkqNa76vnsjYNwjDZUXoTWpP7VYm3mtsaQckQADN` - Certus One
 - `9QxCLckBiJc783jnMvXZubK4wH86Eqqvashtrwvcsgkv` - Algo|Stake
 
@@ -145,4 +145,4 @@ $ solana-validator \
     --limit-ledger-size
 ```
 
-所有的四个 `--trusted-validator（可信验证节点）` 由 Solana 运行
+所有的四个 `--trusted-validator（可信验证节点）` 由 Solvia 运行

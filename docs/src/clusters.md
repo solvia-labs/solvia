@@ -1,11 +1,11 @@
 ---
-title: Solana Clusters
+title: Solvia Clusters
 ---
 
-Solana maintains several different clusters with different purposes.
+Solvia maintains several different clusters with different purposes.
 
 Before you begin make sure you have first
-[installed the Solana command line tools](cli/install-solana-cli-tools.md)
+[installed the Solvia command line tools](cli/install-solvia-cli-tools.md)
 
 Explorers:
 
@@ -14,7 +14,7 @@ Explorers:
 
 ## Devnet
 
-- Devnet serves as a playground for anyone who wants to take Solana for a
+- Devnet serves as a playground for anyone who wants to take Solvia for a
   test drive, as a user, token holder, app developer, or validator.
 - Application developers should target Devnet.
 - Potential validators should first target Devnet.
@@ -27,7 +27,7 @@ Explorers:
 - Metrics environment variable for Devnet:
 
 ```bash
-export SOLANA_METRICS_CONFIG="host=https://metrics.solana.com:8086,db=devnet,u=scratch_writer,p=topsecret"
+export SOLVIA_METRICS_CONFIG="host=https://metrics.solana.com:8086,db=devnet,u=scratch_writer,p=topsecret"
 ```
 
 - RPC URL for Devnet: `https://api.devnet.solana.com`
@@ -63,7 +63,7 @@ $ solana-validator \
 ```
 
 The [`--known-validator`s](running-validator/validator-start.md#known-validators)
-are operated by Solana Labs
+are operated by Solvia Labs
 
 ## Testnet
 
@@ -79,7 +79,7 @@ are operated by Solana Labs
 - Metrics environment variable for Testnet:
 
 ```bash
-export SOLANA_METRICS_CONFIG="host=https://metrics.solana.com:8086,db=tds,u=testnet_write,p=c4fa841aa918bf8274e3e2a44d77568d9861b3ea"
+export SOLVIA_METRICS_CONFIG="host=https://metrics.solana.com:8086,db=tds,u=testnet_write,p=c4fa841aa918bf8274e3e2a44d77568d9861b3ea"
 ```
 
 - RPC URL for Testnet: `https://api.testnet.solana.com`
@@ -115,7 +115,7 @@ $ solana-validator \
 The identities of the
 [`--known-validator`s](running-validator/validator-start.md#known-validators) are:
 
-- `5D1fNXzvv5NjV1ysLjirC4WY92RNsVH18vjmcszZd8on` - Solana Labs (testnet.solana.com)
+- `5D1fNXzvv5NjV1ysLjirC4WY92RNsVH18vjmcszZd8on` - Solvia Labs (testnet.solana.com)
 - `Ft5fbkqNa76vnsjYNwjDZUXoTWpP7VYm3mtsaQckQADN` - Certus One
 - `9QxCLckBiJc783jnMvXZubK4wH86Eqqvashtrwvcsgkv` - Algo|Stake
 
@@ -133,7 +133,7 @@ A permissionless, persistent cluster for early token holders and launch partners
 - Metrics environment variable for Mainnet Beta:
 
 ```bash
-export SOLANA_METRICS_CONFIG="host=https://metrics.solana.com:8086,db=mainnet-beta,u=mainnet-beta_write,p=password"
+export SOLVIA_METRICS_CONFIG="host=https://metrics.solana.com:8086,db=mainnet-beta,u=mainnet-beta_write,p=password"
 ```
 
 - RPC URL for Mainnet Beta: `https://api.mainnet-beta.solana.com`
@@ -170,4 +170,4 @@ $ solana-validator \
 ```
 
 All four [`--known-validator`s](running-validator/validator-start.md#known-validators)
-are operated by Solana Labs
+are operated by Solvia Labs

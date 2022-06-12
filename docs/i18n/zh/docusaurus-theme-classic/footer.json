@@ -32,7 +32,7 @@
     "description": "The label of footer link with label=GitHub linking to https://github.com/solana-labs/solana"
   },
   "copyright": {
-    "message": "Copyright © 2021 Solana Foundation",
+    "message": "Copyright © 2021 Solvia Foundation",
     "description": "The footer copyright"
   }
 }

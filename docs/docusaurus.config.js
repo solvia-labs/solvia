@@ -1,14 +1,14 @@
 const math = require("remark-math");
 const katex = require("rehype-katex");
 module.exports = {
-  title: "Solana Docs",
+  title: "Solvia Docs",
   tagline:
-    "Solana is an open source project implementing a new, high-performance, permissionless blockchain.",
-  url: "https://docs.solana.com",
+    "Solvia is an open source project implementing a new, high-performance, permissionless blockchain.",
+  url: "https://docs.solvia.com",
   baseUrl: "/",
   favicon: "img/favicon.ico",
-  organizationName: "solana-labs", // Usually your GitHub org/user name.
-  projectName: "solana", // Usually your repo name.
+  organizationName: "solvia-labs", // Usually your GitHub org/user name.
+  projectName: "solvia", // Usually your repo name.
   onBrokenLinks: "throw",
   stylesheets: [
     {
@@ -26,7 +26,7 @@ module.exports = {
   themeConfig: {
     navbar: {
       logo: {
-        alt: "Solana Logo",
+        alt: "Solvia Logo",
         src: "img/logo-horizontal.svg",
         srcDark: "img/logo-horizontal-dark.svg",
       },
@@ -66,7 +66,7 @@ module.exports = {
           position: "right",
         },
         {
-          href: "https://github.com/solana-labs/solana",
+          href: "https://github.com/solvia-labs/solvia",
           label: "GitHub",
           position: "right",
         },
@@ -75,7 +75,7 @@ module.exports = {
     algolia: {
       // This API key is "search-only" and safe to be published
       apiKey: "d58e0d68c875346d52645d68b13f3ac0",
-      indexName: "solana",
+      indexName: "solvia",
       contextualSearch: true,
     },
     footer: {
@@ -99,11 +99,11 @@ module.exports = {
             },
             {
               label: "Twitter",
-              href: "https://twitter.com/solana",
+              href: "https://twitter.com/solvia",
             },
             {
               label: "Forums",
-              href: "https://forums.solana.com",
+              href: "https://forums.solvia.com",
             },
           ],
         },
@@ -112,12 +112,12 @@ module.exports = {
           items: [
             {
               label: "GitHub",
-              href: "https://github.com/solana-labs/solana",
+              href: "https://github.com/solvia-labs/solvia",
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Solana Foundation`,
+      copyright: `Copyright © ${new Date().getFullYear()} Solvia Foundation`,
     },
   },
   presets: [

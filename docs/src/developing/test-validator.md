@@ -1,5 +1,5 @@
 ---
-title: Solana Test Validator
+title: Solvia Test Validator
 ---
 During early stage development, it is often convenient to target a cluster with
 fewer restrictions and more configuration options than the public offerings
@@ -17,8 +17,8 @@ starts a full-featured, single-node cluster on the developer's workstation.
 - Jump to an arbitrary slot (`--warp-slot ...`)
 
 ## Installation
-The `solana-test-validator` binary ships with the Solana CLI Tool Suite.
-[Install](/cli/install-solana-cli-tools) before continuing.
+The `solana-test-validator` binary ships with the Solvia CLI Tool Suite.
+[Install](/cli/install-solvia-cli-tools) before continuing.
 
 ## Running
 First take a look at the configuration options
@@ -51,7 +51,7 @@ needed, it can be stopped with ctrl-c.
 
 ## Interacting
 Open a new terminal to interact with a [running](#running) `solana-test-validator`
-instance using other binaries from the Solana CLI Tool Suite or your own client
+instance using other binaries from the Solvia CLI Tool Suite or your own client
 software.
 
 #### Configure the CLI Tool Suite to target a local cluster by default

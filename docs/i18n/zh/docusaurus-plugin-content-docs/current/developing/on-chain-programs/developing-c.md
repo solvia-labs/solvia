@@ -2,7 +2,7 @@
 title: "用 C 语言开发"
 ---
 
-Solana 支持使用 C 和 C++ 语言编写链上的程序。
+Solvia 支持使用 C 和 C++ 语言编写链上的程序。
 
 ## 项目布局 {#project-layout}
 
@@ -28,7 +28,7 @@ Bpf-sdk可能不在上面指定的确切位置，但是如果您根据[如何开
 
 首先设置环境：
 - 从https://rustup.rs安装最新的Rust稳定版本
-- 从https://docs.solana.com/cli/install-solana-cli-tools安装最新的Solana命令行工具
+- 从https://docs.solana.com/cli/install-solvia-cli-tools安装最新的Solvia命令行工具
 
 然后使用make构建：
 ```bash
@@ -37,14 +37,14 @@ make -C <program directory>
 
 ## 如何测试 {#how-to-test}
 
-Solana 使用 [Criterion](https://github.com/Snaipe/Criterion) 测试框架，并且在每次构建程序时都会执行测试，[如何开发](#how-to-build)。
+Solvia 使用 [Criterion](https://github.com/Snaipe/Criterion) 测试框架，并且在每次构建程序时都会执行测试，[如何开发](#how-to-build)。
 
 要添加测试，请在源文件`test_<program
 name>.c`旁边创建一个新文件，并使用标准测试用例填充它。  有关示例，请参见[helloworld C测试](https://github.com/solana-labs/example-helloworld/blob/master/src/program-c/src/helloworld/test_helloworld.c)或[Criterion文档](https://criterion.readthedocs.io/en/master)，获取编写测试用例的信息。
 
 ## 程序入口点 {#program-entrypoint}
 
-程序导出一个已知的入口点符号，在调用程序时，Solana运行时将查找并调用该入口点符号。  Solana支持多个[BPF加载程序版本](overview.md#versions)，它们之间的入口点可能会有所不同。 程序必须为相同的加载器编写并部署。  有关更多详细信息，请参见[概览](overview#loaders)。
+程序导出一个已知的入口点符号，在调用程序时，Solvia运行时将查找并调用该入口点符号。  Solvia支持多个[BPF加载程序版本](overview.md#versions)，它们之间的入口点可能会有所不同。 程序必须为相同的加载器编写并部署。  有关更多详细信息，请参见[概览](overview#loaders)。
 
 当前有两个受支持的加载器：[BPF加载器](https://github.com/solana-labs/solana/blob/7ddf10e602d2ed87a9e3737aa8c32f1db9f909d8/sdk/program/src/bpf_loader.rs#L17)和[已弃用BFT加载器](https://github.com/solana-labs/solana/blob/7ddf10e602d2ed87a9e3737aa8c32f1db9f909d8/sdk/program/src/bpf_loader_deprecated.rs#L14)。
 
@@ -128,4 +128,4 @@ $ make dump_<program name>
 
 ## 示例 {#examples}
 
-[Solana 程序库github](https://github.com/solana-labs/solana-program-library/tree/master/examples/c)代码库包含了 C 语言的例子集合。
+[Solvia 程序库github](https://github.com/solana-labs/solana-program-library/tree/master/examples/c)代码库包含了 C 语言的例子集合。

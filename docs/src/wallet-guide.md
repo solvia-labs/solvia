@@ -1,10 +1,10 @@
 ---
-title: Solana Wallet Guide
+title: Solvia Wallet Guide
 ---
 
 This document describes the different wallet options that are available to users
-of Solana who want to be able to send, receive and interact with
-SOL tokens on the Solana blockchain.
+of Solvia who want to be able to send, receive and interact with
+SOL tokens on the Solvia blockchain.
 
 ## What is a Wallet?
 
@@ -41,15 +41,15 @@ Different wallet solutions offer different approaches to keypair security,
 interacting with the keypair, and signing transactions to use/spend the tokens.
 Some are easier to use than others.
 Some store and back up private keys more securely.
-Solana supports multiple types of wallets so you can choose the right balance
+Solvia supports multiple types of wallets so you can choose the right balance
 of security and convenience.
 
-**If you want to be able to receive SOL tokens on the Solana blockchain,
+**If you want to be able to receive SOL tokens on the Solvia blockchain,
 you first will need to create a wallet.**
 
 ## Supported Wallets
 
-Solana supports several types of wallets in the Solana native
+Solvia supports several types of wallets in the Solvia native
 command-line app as well as wallets from third-parties.
 
 For the majority of users, we recommend using one of the
@@ -58,6 +58,6 @@ For the majority of users, we recommend using one of the
 user experience rather than needing to learn command line tools.
 
 For advanced users or developers, the [command-line wallets](wallet-guide/cli.md)
-may be more appropriate, as new features on the Solana blockchain will always be
+may be more appropriate, as new features on the Solvia blockchain will always be
 supported on the command line first before being integrated into third-party
 solutions.

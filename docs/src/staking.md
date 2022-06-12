@@ -1,5 +1,5 @@
 ---
-title: Staking on Solana
+title: Staking on Solvia
 ---
 
 _Note before reading: All references to increases in values are in absolute
@@ -62,10 +62,10 @@ Staking operations are supported by the following wallet solutions:
 - SolFlare.com in conjunction with a keystore file or a Ledger Nano.
   Check out our [guide to using SolFlare](wallet-guide/solflare.md) for details.
 
-- Solana command line tools can perform all stake operations in conjunction
+- Solvia command line tools can perform all stake operations in conjunction
   with a CLI-generated keypair file wallet, a paper wallet, or with a connected
   Ledger Nano.
-  [Staking commands using the Solana Command Line Tools](cli/delegate-stake.md).
+  [Staking commands using the Solvia Command Line Tools](cli/delegate-stake.md).
 
  - [Exodus](https://www.exodus.com/) wallet. They make the process very simple,
  but you cannot choose a validator: they assign you to their partner validator.
@@ -85,10 +85,10 @@ will be of a different type than one used to simply send and receive tokens.
 
 Follow the wallet's instructions for selecting a validator.  You can get
 information about potentially performant validators from the links below.
-The Solana Foundation does not recommend any particular validator.
+The Solvia Foundation does not recommend any particular validator.
 
 The Mainnet Beta validators introduce themselves and their services on this
-Solana Forum thread:
+Solvia Forum thread:
 
 - https://forums.solana.com/t/validator-information-thread
 
@@ -99,12 +99,12 @@ performance statistics about each one.
 
 - https://solanabeach.io
 
-To view block production statistics, use the Solana command-line tools:
+To view block production statistics, use the Solvia command-line tools:
 
 - `solana validators`
 - `solana block-production`
 
-The Solana team does not make recommendations on how to interpret this
+The Solvia team does not make recommendations on how to interpret this
 information. Do your own due diligence.
 
 #### Delegate your Stake

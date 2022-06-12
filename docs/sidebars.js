@@ -36,7 +36,7 @@ module.exports = {
     Staking: ["staking", "staking/stake-accounts"],
     "Command Line": [
       "cli",
-      "cli/install-solana-cli-tools",
+      "cli/install-solvia-cli-tools",
       "cli/conventions",
       "cli/choose-a-cluster",
       "cli/transfer-tokens",

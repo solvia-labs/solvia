@@ -5,9 +5,9 @@ title: SolFlare Web Wallet
 ## Introduction
 
 [SolFlare.com](https://solflare.com/) is a community-created web wallet built
-specifically for Solana.
+specifically for Solvia.
 SolFlare supports sending and receiving native SOL tokens as well as sending and
-receiving SPL Tokens (Solana's ERC-20 equivalent).
+receiving SPL Tokens (Solvia's ERC-20 equivalent).
 SolFlare also supports staking of SOL tokens.
 
 As a _non-custodial_ wallet, your private keys are not stored by the SolFlare
@@ -35,7 +35,7 @@ computer. You will be prompted to then upload the Keystore file back to the site
 to verify that the download was saved correctly.
 
 **NOTE: If you lose your Keystore file or the password used to encrypt it, any
-funds in that wallet will be lost permanently. Neither the Solana team nor the
+funds in that wallet will be lost permanently. Neither the Solvia team nor the
 SolFlare developers can help you recover lost keys.**
 
 You may want to consider saving a backup copy of your Keystore file on an
@@ -59,18 +59,18 @@ limitations in using the Nano._
 
 To use a Ledger Nano with SolFlare, first ensure you have
 [set up your Nano](ledger-live.md) and have [installed the latest version of
-the Solana app](ledger-live.md#upgrade-to-the-latest-version-of-the-solana-app)
+the Solvia app](ledger-live.md#upgrade-to-the-latest-version-of-the-solana-app)
 on your device.
 
 #### Select a Ledger address to access
 
-Plug in your Nano and open the Solana app so the device screen displays
+Plug in your Nano and open the Solvia app so the device screen displays
 "Application is Ready".
 
 From the SolFlare home page, click "Access a Wallet" then select "Using Ledger
 Nano S | Ledger Nano X". Under "Select derivation path", select the only option:
 
-`` Solana - 44`/501`/ ``
+`` Solvia - 44`/501`/ ``
 
 Note: Your browser may prompt you to ask if SolFlare may communicate with your
 Ledger device. Click to allow this.
@@ -88,8 +88,8 @@ simply click Logout and re-connect with the correct address.
 
 ## Select a Network
 
-Solana maintains [three distinct networks](../clusters), each of which has
-its own purpose in supporting the Solana ecosystem. Mainnet Beta is selected by
+Solvia maintains [three distinct networks](../clusters), each of which has
+its own purpose in supporting the Solvia ecosystem. Mainnet Beta is selected by
 default on SolFlare, as this is the permanent network where exchanges and other
 production apps are deployed. To select a different network, click on the name
 of the currently selected network at the top of the wallet dashboard, either
@@ -119,7 +119,7 @@ and then it will be submitted to the network.
 ## Staking SOL Tokens
 
 SolFlare supports creating and managing stake accounts and delegations. To learn
-about how staking on Solana works in general, check out our
+about how staking on Solvia works in general, check out our
 [Staking Guide](../staking).
 
 ### Create a Stake Account
