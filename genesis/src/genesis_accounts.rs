@@ -44,18 +44,18 @@ pub const SERVICE_STAKER_INFOS: &[StakerInfo] = &[
     StakerInfo {
         name: "wretched texture",
         staker: "ALv8xLUVJL14Gzf7uAiRM52kHd6KwjTkofMnGk95CmeY",
-        lamports: 100_000 * LAMPORTS_PER_SOL,
+        lamports: 145402737282702,
         withdrawer: Some("BpsVM1y7GFT6C6FiTzrPbxDZ3hK5ktZn7rwcrLigduKb"),
     },
 ];
 
 pub const FOUNDATION_STAKER_INFOS: &[StakerInfo] = &[
-    StakerInfo {
-        name: "lyrical supermarket",
-        staker: "77GPhHvrUaTRuWPcXnnjCuaGLBm81XjpMZTjk5dLias",
-        lamports: 2_900_000 * LAMPORTS_PER_SOL,
-        withdrawer: Some("5Ryf6H4VeJjPwWMuM42ZoT2JgWr91zFUSRp6Vfqp9sV3"),
-    },
+//    StakerInfo {
+//        name: "lyrical supermarket",
+//        staker: "77GPhHvrUaTRuWPcXnnjCuaGLBm81XjpMZTjk5dLias",
+//        lamports: 2_900_000 * LAMPORTS_PER_SOL,
+//        withdrawer: Some("5Ryf6H4VeJjPwWMuM42ZoT2JgWr91zFUSRp6Vfqp9sV3"),
+//    },
 ];
 
 //pub const GRANTS_STAKER_INFOS: &[StakerInfo] = &[

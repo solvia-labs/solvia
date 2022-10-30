@@ -532,13 +532,14 @@ fn main() -> Result<(), Box<dyn error::Error>> {
             *identity_pubkey,
             AccountSharedData::new(bootstrap_validator_lamports, 0, &system_program::id()),
         );
-
+        //vote_account -- 3DhEbwSRa985orCXEsjMm3AApG7tQDHZdKk1vq3yfmRt - 93490287245574 lamports
+        //stake_account -- Bn7eSBoYT21GdaPsdGfEj4HpqbjUUVTpJuMn7PLYkzRn - 1464932631571 lamports
         let vote_account = vote_state::create_account_with_authorized(
             identity_pubkey,
             identity_pubkey,
             identity_pubkey,
             commission,
-            VoteState::get_rent_exempt_reserve(&rent).max(1),
+            93490287245574,//VoteState::get_rent_exempt_reserve(&rent).max(1),
         );
 
         genesis_config.add_account(
@@ -550,7 +551,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
                 vote_pubkey,
                 &vote_account,
                 &rent,
-                bootstrap_validator_stake_lamports,
+                1464932631571, //bootstrap_validator_stake_lamports,
             ),
         );
 

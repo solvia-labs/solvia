@@ -1204,7 +1204,7 @@ impl Bank {
             bank.update_stake_history(None);
         }
         bank.update_clock(None);
-        bank.update_fnode_data_frji();
+        //bank.update_fnode_data_frji();
         bank.add_grant_data_frji();
         bank.update_rent();
         bank.update_epoch_schedule();
