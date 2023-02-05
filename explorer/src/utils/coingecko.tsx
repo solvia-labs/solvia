@@ -55,12 +55,12 @@ export function useCoinGecko(coinId?: string): CoinGeckoResult | undefined {
           .then((info: CoinInfoResult) => {
             setCoinInfo({
               coinInfo: {
-                price: 0.25,//info.data.market_data.current_price.usd,
-                volume_24: 0,//info.data.market_data.total_volume.usd,
-                market_cap: 0.25*10000,//info.data.market_data.market_cap.usd,
-                market_cap_rank: 2490,//info.data.market_data.market_cap_rank,
+                price: info.data.market_data.current_price.usd,
+                volume_24: info.data.market_data.total_volume.usd,
+                market_cap: info.data.market_data.market_cap.usd,
+                market_cap_rank: info.data.market_data.market_cap_rank,
                 price_change_percentage_24h:
-                  0,//info.data.market_data.price_change_percentage_24h,
+                   info.data.market_data.price_change_percentage_24h,
                 last_updated: new Date(info.data.last_updated),
               },
               status: CoingeckoStatus.Success,

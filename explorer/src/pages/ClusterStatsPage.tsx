@@ -42,7 +42,7 @@ function StakingComponent() {
   const { status } = useCluster();
   const supply = useSupply();
   const fetchSupply = useFetchSupply();
-  const coinInfo = useCoinGecko("solana");
+  const coinInfo = useCoinGecko("solvia");
   const { fetchVoteAccounts, voteAccounts } = useVoteAccounts();
 
   function fetchData() {
@@ -72,6 +72,14 @@ function StakingComponent() {
           (prev, current) => prev + current.activatedStake,
           0
         ) + delinquentStake
+      );
+    }
+    else if (voteAccounts) { // no delinquent
+      return (
+          voteAccounts.current.reduce(
+              (prev, current) => prev + current.activatedStake,
+              0
+          )
       );
     }
   }, [voteAccounts, delinquentStake]);
