@@ -10,7 +10,7 @@ homepage = "https://solana.com/"
 publish = false
 
 [dependencies]
-csv = "1.1"
+csv = "1.2"
 serde = { version = "1.0.122", features = ["derive"] }
 
 [[bin]]
