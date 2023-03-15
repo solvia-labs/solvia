@@ -1204,8 +1204,9 @@ impl Bank {
             bank.update_stake_history(None);
         }
         bank.update_clock(None);
+        //todo: not needed when primordial accounts imported
         //bank.update_fnode_data_frji();
-        bank.add_grant_data_frji();
+        //bank.add_grant_data_frji();
         bank.update_rent();
         bank.update_epoch_schedule();
         bank.update_recent_blockhashes();
@@ -1408,10 +1409,6 @@ impl Bank {
             new.update_clock(Some(parent_epoch));
             new.process_fnode_rewards(Some(parent_epoch));
             new.process_grants(parent_epoch);
-            //todo: fix purged grantdatasysvar
-            if new.slot() == 236100 as u64{
-                new.add_grant_data_frji();
-            }
             new.update_fees();
 
             return new;
@@ -1429,10 +1426,6 @@ impl Bank {
         new.update_clock(Some(parent_epoch));
         new.process_fnode_rewards(Some(parent_epoch));
         new.process_grants(parent_epoch);
-        //todo: fix purged grantdatasysvar
-        if new.slot() == 236100 as u64{
-            new.add_grant_data_frji();
-        }
         new.update_fees();
         if !new.fix_recent_blockhashes_sysvar_delay() {
             new.update_recent_blockhashes();
