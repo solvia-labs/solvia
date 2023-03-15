@@ -16,6 +16,7 @@ use solana_ledger::{
 use solana_runtime::hardened_unpack::MAX_GENESIS_ARCHIVE_UNPACKED_SIZE;
 use solana_sdk::{
     account::{Account, AccountSharedData, ReadableAccount, WritableAccount},
+    bs58,
     clock,
     epoch_schedule::EpochSchedule,
     fee_calculator::FeeRateGovernor,
@@ -82,7 +83,7 @@ pub fn load_genesis_accounts(file: &str, genesis_config: &mut GenesisConfig) -> 
         let mut account = AccountSharedData::new(account_details.balance, 0, &owner_program_id);
         if account_details.data != "~" {
             account.set_data(
-                base64::decode(account_details.data.as_str()).map_err(|err| {
+                bs58::decode(account_details.data.as_str()).into_vec().map_err(|err| {
                     io::Error::new(
                         io::ErrorKind::Other,
                         format!("Invalid account data: {}: {:?}", account_details.data, err),
