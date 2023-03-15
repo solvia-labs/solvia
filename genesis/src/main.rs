@@ -533,7 +533,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
             AccountSharedData::new(bootstrap_validator_lamports, 0, &system_program::id()),
         );
         //vote_account -- 3DhEbwSRa985orCXEsjMm3AApG7tQDHZdKk1vq3yfmRt - 93490287245574 lamports
-        //stake_account -- Bn7eSBoYT21GdaPsdGfEj4HpqbjUUVTpJuMn7PLYkzRn - 1464932631571 lamports
+        //stake_account -- Bn7eSBoYT21GdaPsdGfEj4HpqbjUUVTpJuMn7PLYkzRn - 1464932631571 lamports, 16740827136039 lamps, 2nd restart
         let vote_account = vote_state::create_account_with_authorized(
             identity_pubkey,
             identity_pubkey,
@@ -551,7 +551,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
                 vote_pubkey,
                 &vote_account,
                 &rent,
-                1464932631571, //bootstrap_validator_stake_lamports,
+                16740827136039, //bootstrap_validator_stake_lamports,
             ),
         );
 
